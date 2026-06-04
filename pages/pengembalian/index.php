@@ -16,6 +16,21 @@ if (!$result){
     die("Query Error: " . mysqli_error($koneksi));
 }
 
+$query_riwayat = "SELECT kr.id, u_peminjam.nama_lengkap AS nama_peminjam, u_petugas.nama_lengkap AS nama_petugas, kr.tanggal_kembali, kr.hari_terlambat, kr.kondisi_kembali, kr.catatan_kerusakan,
+                GROUP_CONCAT(CONCAT(b.nama, '(',dp.jumlah, ')') SEPARATOR ', ') AS detail_barang
+                FROM pengembalian kr 
+                JOIN pengajuan_peminjaman p ON kr.id_peminjaman = p.id
+                JOIN users u_peminjam ON p.id_peminjam = u_peminjam.id
+                JOIN users u_petugas ON kr.diterima_oleh = u_petugas.id
+                JOIN detail_peminjaman dp ON dp.id_peminjaman = p.id
+                JOIN barang b ON dp.id_barang = b.id
+                GROUP BY kr.id ORDER BY kr.tanggal_kembali DESC";
+
+$result_riwayat = mysqli_query($koneksi, $query_riwayat);
+if (!$result_riwayat){
+    die("Query Riwayat Error: ". mysqli_error($koneksi));
+}
+
 /*if (!isset($_SESSION['user_id'])){
     header("Location:../../login.php");
     exit();
@@ -94,6 +109,62 @@ if ($_SESSION['peran'] !== 'admin' && $_SESSION['peran'] !== 'staff_tu'){
             ?>
                 <tr>
                     <td colspan="7" align="center">Tidak ada peminjaman aktif saat ini.</td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+    <hr>
+    <h2>Riwayat Pengembalian Barang</h2>
+
+    <table border="1" cellpadding="10" cellspacing="0">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Nama Peminjam</th>
+                <th>Barang yang Dikembalikan</th>
+                <th>Tanggal Kembali</th>
+                <th>Hari Terlambat</th>
+                <th>Kondisi</th>
+                <th>Catatan Kerusakan</th>
+                <th>Diterima Oleh</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $no_riwayat = 1;
+            if (mysqli_num_rows($result_riwayat) > 0) {
+                while ($riwayat = mysqli_fetch_assoc($result_riwayat)) {
+            ?>
+                <tr>
+                    <td><?php echo $no_riwayat++; ?></td>
+                    <td><?php echo htmlspecialchars($riwayat['nama_peminjam']); ?></td>
+                    <td><?php echo htmlspecialchars($riwayat['detail_barang']); ?></td>
+                    <td><?php echo date('d-m-Y', strtotime($riwayat['tanggal_kembali'])); ?></td>
+                    <td>
+                        <?php 
+                        if ($riwayat['hari_terlambat'] > 0) {
+                            echo '<span style="color:red; font-weight:bold;">' . $riwayat['hari_terlambat'] . ' hari</span>';
+                        } else {
+                            echo '<span style="color:green;">Tepat Waktu</span>';
+                        }
+                        ?>
+                    </td>
+                    <td><?php echo htmlspecialchars($riwayat['kondisi_kembali']); ?></td>
+                    <td><?php echo htmlspecialchars($riwayat['catatan_kerusakan'] ?: '-'); ?></td>
+                    <td><?php echo htmlspecialchars($riwayat['nama_petugas']); ?></td>
+                    <td>
+                        <a href="edit_pengembalian.php?id=<?php echo $riwayat['id']; ?>">Edit</a> |
+                        <a href="hapus_pengembalian.php?id=<?php echo $riwayat['id']; ?>" 
+                           onclick="return confirm('Yakin ingin menghapus data pengembalian ini?')">Hapus</a>
+                    </td>
+                </tr>
+            <?php
+                }
+            } else {
+            ?>
+                <tr>
+                    <td colspan="9" align="center">Belum ada riwayat pengembalian.</td>
                 </tr>
             <?php } ?>
         </tbody>

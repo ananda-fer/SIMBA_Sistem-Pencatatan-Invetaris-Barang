@@ -10,6 +10,12 @@ if(!isset($_POST['submit_kembali'])){
 $id_peminjaman = intval($_POST['id_peminjaman']);
 $tanggal_kembali_aktual = $_POST['tanggal_kembali'];
 $kondisi_kembali = mysqli_real_escape_string($koneksi, $_POST['kondisi_kembali']);
+$allowed = ['baik', 'rusak_ringan', 'rusak_berat'];
+if (!in_array($kondisi_kembali, $allowed)) {
+    $_SESSION['error'] = "Kondisi tidak valid";
+    header("Location: index.php");
+    exit();
+}
 $catatan_kerusakan = mysqli_real_escape_string($koneksi, $_POST['catatan_kerusakan']);
 
 $query_peminjaman = "SELECT tanggal_kembali FROM pengajuan_peminjaman WHERE id = $id_peminjaman";
@@ -36,6 +42,7 @@ if ($date_aktual > $date_batas){
 mysqli_begin_transaction($koneksi);
 
 $diterima_oleh = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 2;
+//$diterima_oleh = intval($_SESSION['user_id']);
 $success = true;
 
 // QUERY 1 - Simpan catatan pengembalian ke tabel pengembalian
