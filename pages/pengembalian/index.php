@@ -97,7 +97,6 @@ if ($_SESSION['peran'] !== 'admin' && $_SESSION['peran'] !== 'staff_tu'){
                     <td><?php echo date('d-m-Y', strtotime($row['tanggal_pinjam'])); ?></td>
                     <td><?php echo date('d-m-Y', strtotime($row['batas_kembali'])); ?></td>
                     <td>
-                        <!-- Tombol Aksi untuk mengarahkan ke form pengembalian -->
                         <a href="form_pengembalian.php?id=<?php echo $row['id_peminjaman']; ?>">
                             Proses Pengembalian
                         </a>
