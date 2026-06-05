@@ -42,10 +42,8 @@ if ($date_aktual > $date_batas){
 mysqli_begin_transaction($koneksi);
 
 $diterima_oleh = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 2;
-//$diterima_oleh = intval($_SESSION['user_id']);
 $success = true;
 
-// QUERY 1 - Simpan catatan pengembalian ke tabel pengembalian
 $query_insert_pengembalian = "INSERT INTO pengembalian (id_peminjaman, diterima_oleh, tanggal_kembali, hari_terlambat, kondisi_kembali, catatan_kerusakan)
                             VALUES ($id_peminjaman, $diterima_oleh, '$tanggal_kembali_aktual', $hari_terlambat, '$kondisi_kembali', '$catatan_kerusakan')";
 
@@ -53,7 +51,6 @@ if (!mysqli_query($koneksi, $query_insert_pengembalian)){
     $success = false;
 }
 
-// QUERY 2 - Update status peminjaman di table pengajuan_peminjaman menjadi selesai
 if ($success){
     $query_update_status = "UPDATE pengajuan_peminjaman SET status = 'selesai' WHERE id = $id_peminjaman";
     if (!mysqli_query($koneksi, $query_update_status)){
@@ -61,7 +58,6 @@ if ($success){
     }
 }
 
-// QUERY 3 - Ambil daftar barang dari detail_peminjaman lalu update stok dan kondisi di tabel barang
 if ($success){
     $query_detail = "SELECT id_barang, jumlah FROM detail_peminjaman WHERE id_peminjaman = $id_peminjaman";
     $result_detail = mysqli_query($koneksi, $query_detail);
@@ -90,6 +86,4 @@ if ($success){
 }
 header("Location: index.php");
 exit();
-
-
 ?>
