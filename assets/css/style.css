@@ -654,6 +654,17 @@ textarea.form-input { resize: vertical; min-height: 72px; }
     font-weight: 700;
     font-size: 12px;
 }
+.stok-badge.is-empty {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.ajukan-barang-table tbody tr.is-stok-habis td {
+    color: #9ca3af;
+}
+.ajukan-barang-table tbody tr.is-stok-habis .td-kode,
+.ajukan-barang-table tbody tr.is-stok-habis .item-nama {
+    color: #6b7280;
+}
 .qty-input {
     width: 72px;
     text-align: center;

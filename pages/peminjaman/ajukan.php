@@ -39,7 +39,7 @@ $res_barang = mysqli_query(
     "SELECT b.id, b.kode_barang, b.nama, b.stok_tersedia, (b.stok_total <= 3) AS wajib_surat, k.nama AS nama_kategori
      FROM barang b
      JOIN kategori k ON b.kategori_id = k.id
-     WHERE b.stok_tersedia > 0 AND b.status = 'tersedia'
+     WHERE b.status <> 'dalam_perbaikan'
      ORDER BY k.nama, b.nama ASC"
 );
 $daftar_barang = mysqli_fetch_all($res_barang, MYSQLI_ASSOC);
@@ -298,14 +298,15 @@ require_once '../../includes/sidebar.php';
                         </thead>
                         <tbody>
                             <?php foreach ($daftar_barang as $brg): ?>
-                                <tr>
+                                <?php $stok_habis = (int) $brg['stok_tersedia'] <= 0; ?>
+                                <tr class="<?= $stok_habis ? 'is-stok-habis' : '' ?>">
                                     <td class="td-check">
                                         <input type="checkbox" name="id_barang[]" value="<?= $brg['id'] ?>"
                                             class="checkbox-barang" data-max="<?= $brg['stok_tersedia'] ?>"
                                             data-index="<?= $brg['id'] ?>"
                                             data-nama="<?= htmlspecialchars($brg['nama']) ?>"
                                             data-wajib-surat="<?= (int) $brg['wajib_surat'] ?>"
-                                            onchange="toggleJumlah(this)">
+                                            onchange="toggleJumlah(this)" <?= $stok_habis ? 'disabled title="Stok habis"' : '' ?>>
                                     </td>
                                     <td class="td-kode"><?= htmlspecialchars($brg['kode_barang']) ?></td>
                                     <td class="td-nama">
@@ -319,10 +320,15 @@ require_once '../../includes/sidebar.php';
                                             <span class="badge badge-surat surat-bebas">Tidak wajib</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><span class="stok-badge"><?= $brg['stok_tersedia'] ?></span></td>
+                                    <td>
+                                        <span class="stok-badge <?= $stok_habis ? 'is-empty' : '' ?>">
+                                            <?= $brg['stok_tersedia'] ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <input type="number" name="jumlah[<?= $brg['id'] ?>]" id="jumlah-<?= $brg['id'] ?>"
-                                            class="form-input qty-input" value="1" min="1" max="<?= $brg['stok_tersedia'] ?>" disabled>
+                                            class="form-input qty-input" value="<?= $stok_habis ? 0 : 1 ?>"
+                                            min="<?= $stok_habis ? 0 : 1 ?>" max="<?= $brg['stok_tersedia'] ?>" disabled>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
