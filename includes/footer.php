@@ -1,9 +1,7 @@
     </div>
     <!-- PAGE CONTENT END -->
 
-    <!-- =====================
-         FOOTER
-    ===================== -->
+    <!-- FOOTER -->
     <footer class="main-footer">
         <p class="mb-0">&copy; <?php echo date('Y'); ?> <strong>SIMBA</strong> &mdash; Sistem Pencatatan Inventaris Barang. All rights reserved.</p>
     </footer>
@@ -14,8 +12,17 @@
 <!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Page-specific scripts placeholder -->
-<?php if (isset($extraScripts)) echo $extraScripts; ?>
+<?php
+/**
+ * JS per-halaman:
+ * Di setiap index.php, daftarkan JS tambahan via array $pageJs sebelum require footer.
+ * Contoh: $pageJs = ['assets/js/laporan.js'];
+ */
+if (!empty($pageJs) && is_array($pageJs)):
+    foreach ($pageJs as $jsFile): ?>
+        <script src="<?php echo $basePath . $jsFile; ?>"></script>
+    <?php endforeach;
+endif; ?>
 
 </body>
 </html>
