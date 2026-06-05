@@ -1,28 +1,6 @@
-    </div>
-    <!-- PAGE CONTENT END -->
+    <!-- JS App -->
+    <script src="<?= str_repeat('../', substr_count($_SERVER['PHP_SELF'], '/') - 2) ?>assets/js/app.js"></script>
 
-    <!-- FOOTER -->
-    <footer class="main-footer">
-        <p class="mb-0">&copy; <?php echo date('Y'); ?> <strong>SIMBA</strong> &mdash; Sistem Pencatatan Inventaris Barang. All rights reserved.</p>
-    </footer>
-
-</div>
-<!-- MAIN WRAPPER END -->
-
-<!-- Bootstrap JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<?php
-/**
- * JS per-halaman:
- * Di setiap index.php, daftarkan JS tambahan via array $pageJs sebelum require footer.
- * Contoh: $pageJs = ['assets/js/laporan.js'];
- */
-if (!empty($pageJs) && is_array($pageJs)):
-    foreach ($pageJs as $jsFile): ?>
-        <script src="<?php echo $basePath . $jsFile; ?>"></script>
-    <?php endforeach;
-endif; ?>
-
+</div><!-- end app-wrapper -->
 </body>
 </html>
