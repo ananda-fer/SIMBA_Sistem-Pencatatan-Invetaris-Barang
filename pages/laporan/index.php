@@ -2,7 +2,11 @@
 // =========================================================================
 // KONEKSI DATABASE
 // =========================================================================
-require_once __DIR__ . '/../../koneksi.php';
+require_once __DIR__ . '/../../config/koneksi.php';
+require_once __DIR__ . '/../../includes/auth_check.php';
+require_once __DIR__ . '/../../includes/functions.php';
+
+hanya_role(['admin', 'staff_tu']);
 
 // =========================================================================
 // QUERY: AMBIL DATA LAPORAN (dengan filter dari GET)
@@ -43,14 +47,23 @@ $laporanList = $stmt->fetchAll();
 // PAGE CONFIGURATION
 // =========================================================================
 $pageTitle   = 'Pusat Laporan & Arsip';
+$page_title  = $pageTitle;
 $currentPage = 'laporan';
 $basePath    = '../../';
 $pageCss     = ['assets/css/laporan.css'];
 $pageJs      = ['assets/js/laporan.js'];
 
-require_once $basePath . 'includes/header.php';
-require_once $basePath . 'includes/navbar.php';
+require_once __DIR__ . '/../../includes/header.php';
+require_once __DIR__ . '/../../includes/sidebar.php';
 ?>
+
+<main class="main-content">
+<div class="page-header">
+    <div>
+        <h2>Pusat Laporan & Arsip</h2>
+        <p>Kelola laporan inventaris, peminjaman, dan pengembalian</p>
+    </div>
+</div>
 
 <?php if (!empty($_GET['msg'])): ?>
 <div class="alert alert-<?php echo htmlspecialchars($_GET['type'] ?? 'info'); ?> alert-dismissible fade show mb-3" role="alert">
@@ -313,4 +326,6 @@ require_once $basePath . 'includes/navbar.php';
     </div>
 </div>
 
-<?php require_once $basePath . 'includes/footer.php'; ?>
+</main>
+
+<?php require_once __DIR__ . '/../../includes/footer.php'; ?>

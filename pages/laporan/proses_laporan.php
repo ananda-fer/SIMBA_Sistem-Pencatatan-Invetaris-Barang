@@ -3,7 +3,11 @@
 // PROSES CRUD LAPORAN
 // File ini menangani: tambah, edit, hapus laporan dari form di index.php
 // =========================================================================
-require_once __DIR__ . '/../../koneksi.php';
+require_once __DIR__ . '/../../config/koneksi.php';
+require_once __DIR__ . '/../../includes/auth_check.php';
+require_once __DIR__ . '/../../includes/functions.php';
+
+hanya_role(['admin', 'staff_tu']);
 
 // Pastikan request via POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -30,9 +34,7 @@ if ($aksi === 'tambah') {
         exit;
     }
 
-    // TODO: Ganti dengan ID user yang sedang login (dari session)
-    // Contoh: $dibuatOleh = $_SESSION['id'];
-    $dibuatOleh = 1; // Default sementara (admin)
+    $dibuatOleh = (int) $_SESSION['user_id'];
 
     $stmt = $pdo->prepare("
         INSERT INTO laporan (judul, jenis_laporan, periode_awal, periode_akhir, dibuat_oleh, catatan)

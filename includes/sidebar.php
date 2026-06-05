@@ -39,9 +39,10 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
 
     <!-- Navigasi -->
     <nav class="sb-nav">
-        <!-- Dashboard: semua role -->
-        <a href="<?= app_url('pages/' . ($peran === 'admin' ? 'admin' : ($peran === 'staff_tu' ? 'admin' : 'peminjaman')) . '/dashboard.php') ?>"
-           class="sb-item <?= sb_active('admin', 'dashboard.php') ?>">
+        <?php if (in_array($peran, ['admin', 'staff_tu'])): ?>
+        <!-- Dashboard -->
+        <a href="<?= app_url('pages/dashboard/index.php') ?>"
+           class="sb-item <?= sb_active('dashboard') ?>">
             <span class="sb-icon">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -50,6 +51,7 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
             </span>
             Dashboard
         </a>
+        <?php endif; ?>
 
         <?php if (in_array($peran, ['admin', 'staff_tu'])): ?>
         <!-- Barang -->
@@ -102,9 +104,9 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
         </a>
         <?php endif; ?>
 
-        <?php if ($peran === 'admin'): ?>
+        <?php if (in_array($peran, ['admin', 'staff_tu'])): ?>
         <!-- Laporan -->
-        <a href="<?= app_url('pages/admin/laporan/index.php') ?>" class="sb-item <?= sb_active('laporan') ?>">
+        <a href="<?= app_url('pages/laporan/index.php') ?>" class="sb-item <?= sb_active('laporan') ?>">
             <span class="sb-icon">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M18 20V10M12 20V4M6 20v-6"/>
