@@ -41,35 +41,31 @@ if ($_SESSION['peran'] !== 'admin' && $_SESSION['peran'] !== 'staff_tu'){
     header("Location: ../dashboard/index.php");
     exit();
 }*/
+
+$pageTitle = 'Pengembalian & Kondisi Barang';
+$currentPage = 'pengembalian';
+$basePath = '../../';
+
+require_once $basePath . 'includes/header.php';
+require_once $basePath . 'includes/navbar.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pengembalian Barang dan Kondisi</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    
-</head>
-<body>
-    <?php if (isset($_SESSION['success'])): ?>
-        <script>
-            alert("<?php echo htmlspecialchars($_SESSION['success']); ?>");
-        </script>
-        <?php unset($_SESSION['success']); ?>
-    <?php endif; ?>
+<?php if (isset($_SESSION['success'])): ?>
+    <script>
+        alert("<?php echo htmlspecialchars($_SESSION['success']); ?>");
+    </script>
+    <?php unset($_SESSION['success']); ?>
+<?php endif; ?>
 
-    <?php if (isset($_SESSION['error'])): ?>
-        <script>
-            alert("<?php echo htmlspecialchars($_SESSION['error']); ?>");
-        </script>
-        <?php unset($_SESSION['error']); ?>
-    <?php endif; ?>
+<?php if (isset($_SESSION['error'])): ?>
+    <script>
+        alert("<?php echo htmlspecialchars($_SESSION['error']); ?>");
+    </script>
+    <?php unset($_SESSION['error']); ?>
+<?php endif; ?>
 
 
-    <h2>Daftar Peminjaman Aktif</h2>
-    
+<h2>Daftar Peminjaman Aktif</h2>
     <table border="1" cellpadding="10" cellspacing="0">
         <thead>
             <tr>
@@ -168,6 +164,3 @@ if ($_SESSION['peran'] !== 'admin' && $_SESSION['peran'] !== 'staff_tu'){
             <?php } ?>
         </tbody>
     </table>
-
-</body>
-</html>

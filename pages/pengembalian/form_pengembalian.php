@@ -35,11 +35,13 @@ $result_barang = mysqli_query($koneksi, $query_barang);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Pengembalian Barang</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body>
-    <h2>Form Proses Pengembalian Barang</h2>
-    <a href="index.php">Kembali ke Daftar</a>
+    <h2 class="text-2x1 font-bold text-gray-800 mb-2">Form Proses Pengembalian Barang</h2>
+    <a href="index.php" class="text-sm text-blue-500 rounded-x1 hover:underline transition">Kembali ke Daftar</a>
     <hr>
+
     <h3>Informasi Peminjaman</h3>
     <table cellpadding="5">
         <tr>
@@ -70,8 +72,8 @@ $result_barang = mysqli_query($koneksi, $query_barang);
             </li>
             <?php } ?>
     </ul>
-
     <hr>
+    
     <h3>Input Data Pengembalian: </h3>
     <form action="proses_pengembalian.php" method="POST">
         <input type="hidden" name="id_peminjaman" value="<?php echo $id_peminjaman; ?>">
