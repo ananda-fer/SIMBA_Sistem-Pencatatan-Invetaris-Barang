@@ -7,9 +7,10 @@ $currentPage = isset($currentPage) ? $currentPage : '';
      SIDEBAR
 ===================== -->
 <div class="sidebar">
-    <div class="sidebar-brand">
-        <i class="fa-solid fa-layer-group"></i>
-        SIMBA
+    <div class="sidebar-brand justify-content-center">
+        <a href="<?php echo $basePath; ?>pages/dashboard/index.php">
+            <img src="<?php echo $basePath; ?>assets/img/SIMBA LOGO.png" alt="SIMBA" class="img-fluid" style="max-height: 50px;">
+        </a>
     </div>
 
     <nav class="sidebar-nav">
