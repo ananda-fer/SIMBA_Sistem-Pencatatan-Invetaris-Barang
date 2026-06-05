@@ -1,0 +1,126 @@
+/* =========================================================================
+   DASHBOARD.CSS — Styles khusus halaman Dashboard
+   ========================================================================= */
+
+/* Stat Cards (Atas) */
+.card-stat {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    border-left: 4px solid transparent;
+    height: 100%;
+}
+.card-stat.blue   { border-left-color: #4361ee; }
+.card-stat.orange { border-left-color: #f77f00; }
+.card-stat.yellow { border-left-color: #ffd166; }
+.card-stat.red    { border-left-color: #ef476f; }
+
+.card-stat .icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+.card-stat.blue   .icon-wrapper { background: rgba(67,97,238,0.1);   color: #4361ee; }
+.card-stat.orange .icon-wrapper { background: rgba(247,127,0,0.1);   color: #f77f00; }
+.card-stat.yellow .icon-wrapper { background: rgba(255,209,102,0.1); color: #e6b800; }
+.card-stat.red    .icon-wrapper { background: rgba(239,71,111,0.1);  color: #ef476f; }
+
+.card-stat .stat-content h3 { margin:0; font-size:1.8rem; font-weight:700; }
+.card-stat.blue   .stat-content h3 { color:#4361ee; }
+.card-stat.orange .stat-content h3 { color:#f77f00; }
+.card-stat.yellow .stat-content h3 { color:#e6b800; }
+.card-stat.red    .stat-content h3 { color:#ef476f; }
+.card-stat .stat-content p     { margin:0; font-size:.85rem; font-weight:600; color:#2b2d42; }
+.card-stat .stat-content small { color:#8d99ae; font-size:.75rem; }
+
+/* Mini Cards (Bawah) */
+.card-mini {
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    border: 1px solid #edf2f4;
+}
+.dot { width:8px; height:8px; border-radius:50%; margin-right:10px; flex-shrink:0; }
+.dot.green  { background:#06d6a0; }
+.dot.orange { background:#f77f00; }
+.dot.red    { background:#ef476f; }
+.dot.blue   { background:#4361ee; }
+.card-mini h4 { margin:0; font-size:1.1rem; font-weight:700; margin-right:8px; }
+.card-mini.green  h4 { color:#06d6a0; }
+.card-mini.orange h4 { color:#f77f00; }
+.card-mini.red    h4 { color:#ef476f; }
+.card-mini.blue   h4 { color:#4361ee; }
+.card-mini p  { margin:0; font-size:.75rem; color:#8d99ae; font-weight:500; }
+
+/* Section Card (panel putih) */
+.section-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    margin-bottom: 20px;
+}
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2b2d42;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.section-title a { font-size:.8rem; color:#4361ee; text-decoration:none; font-weight:600; }
+
+/* Tabel Pengajuan */
+.table-pengajuan th {
+    font-size:.72rem; color:#8d99ae; text-transform:uppercase;
+    border-bottom:2px solid #edf2f4; padding:10px 15px; font-weight:600;
+}
+.table-pengajuan td {
+    font-size:.83rem; font-weight:600; color:#2b2d42;
+    padding:13px 15px; vertical-align:middle; border-bottom:1px solid #edf2f4;
+}
+.table-pengajuan tbody tr:last-child td { border-bottom: none; }
+
+/* Badge Status */
+.badge-status { padding:4px 10px; border-radius:20px; font-size:.68rem; font-weight:700; }
+.badge-menunggu     { background:rgba(255,209,102,0.2); color:#c8960e; }
+.badge-diverifikasi { background:rgba(67,97,238,0.15);  color:#4361ee; }
+.badge-disetujui    { background:rgba(6,214,160,0.2);   color:#06a878; }
+.badge-aktif        { background:rgba(67,97,238,0.2);   color:#4361ee; }
+.badge-selesai      { background:rgba(141,153,174,0.2); color:#6c757d; }
+.badge-ditolak      { background:rgba(239,71,111,0.2);  color:#ef476f; }
+.badge-dibatalkan   { background:rgba(108,117,125,0.2); color:#495057; }
+
+/* Progress Bar Kategori */
+.kategori-item { margin-bottom:14px; }
+.kategori-info { display:flex; justify-content:space-between; font-size:.8rem; font-weight:600; color:#2b2d42; margin-bottom:5px; }
+.progress-custom { height:6px; background:#edf2f4; border-radius:10px; }
+.progress-custom .progress-bar { border-radius:10px; }
+.bg-purple { background-color:#7209b7 !important; }
+.bg-green  { background-color:#06d6a0 !important; }
+
+/* Timeline Aktivitas */
+.timeline { position:relative; padding-left:22px; list-style:none; margin:0; }
+.timeline::before { content:""; position:absolute; left:5px; top:5px; bottom:0; width:2px; background:#edf2f4; }
+.timeline-item { position:relative; margin-bottom:16px; }
+.timeline-item::before { content:""; position:absolute; left:-21px; top:4px; width:10px; height:10px; border-radius:50%; }
+.timeline-item.blue::before   { background:#4361ee; }
+.timeline-item.green::before  { background:#06d6a0; }
+.timeline-item.orange::before { background:#f77f00; }
+.timeline-content { font-size:.8rem; color:#2b2d42; font-weight:500; line-height:1.5; }
+.timeline-time { display:block; font-size:.7rem; color:#8d99ae; margin-top:2px; }
+
+/* Empty state */
+.empty-state { text-align:center; padding:30px 0; color:#adb5bd; font-size:.85rem; }

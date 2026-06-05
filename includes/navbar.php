@@ -8,8 +8,7 @@ $currentPage = isset($currentPage) ? $currentPage : '';
 ===================== -->
 <div class="sidebar">
     <div class="sidebar-brand">
-        <i class="fa-solid fa-layer-group"></i>
-        SIMBA
+        <img src="<?php echo $basePath; ?>assets/img/SIMBA_LOGO.png" alt="Logo SIMBA" class="brand-logo">
     </div>
 
     <nav class="sidebar-nav">
