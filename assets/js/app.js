@@ -90,7 +90,7 @@ function konfirmasiSerahkan(id) {
         btnLabel: 'Ya, Serahkan',
         btnClass: 'btn-approve',
         onConfirm: () => {
-            window.location.href = `serahkan.php?id=${id}`;
+            window.location.href = `approval.php?id=${id}&aksi=serahkan`;
         }
     });
 }
