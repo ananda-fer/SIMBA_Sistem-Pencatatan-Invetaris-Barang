@@ -9,7 +9,7 @@
 // =========================================================================
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'simbadatabase');
+define('DB_NAME', 'simba');
 define('DB_USER', 'root');       // Ganti jika username Laragon Anda berbeda
 define('DB_PASS', '');           // Ganti jika Anda punya password database
 define('DB_CHARSET', 'utf8mb4');
