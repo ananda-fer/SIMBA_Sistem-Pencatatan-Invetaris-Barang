@@ -212,7 +212,7 @@ if (isset($_POST['login'])) {
     <main class="auth-shell">
         <section class="brand" aria-label="SIMBA">
             <div class="brand-logo">
-                <img src="../../assets/img/SIMBA_LOGO.png" alt="SIMBA" style="height:64px;width:auto;object-fit:contain">
+                <img src="../../assets/img/SIMBA LOGO.png" alt="SIMBA" style="height:64px;width:auto;object-fit:contain">
             </div>
             <h1>Welcome to SIMBA</h1>
             <p class="subtitle">SIMBA Asset Management System</p>
