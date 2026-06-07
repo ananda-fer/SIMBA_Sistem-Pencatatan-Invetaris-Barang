@@ -92,28 +92,8 @@ if (isset($_POST['login'])) {
         .brand-logo {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
             margin-bottom: 18px;
-        }
-        .brand-mark {
-            width: 34px;
-            height: 34px;
-            border: 3px solid #facc15;
-            transform: rotate(30deg);
-            position: relative;
-        }
-        .brand-mark::before,
-        .brand-mark::after {
-            content: '';
-            position: absolute;
-            inset: 5px -7px;
-            border: 2px solid #38bdf8;
-        }
-        .brand-mark::after { inset: -7px 5px; border-color: #facc15; }
-        .brand-name {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: .5px;
         }
         h1 { margin: 0 0 8px; font-size: 28px; line-height: 1.15; }
         .subtitle { margin: 0; color: #7b8aa4; font-size: 14px; }
@@ -232,8 +212,7 @@ if (isset($_POST['login'])) {
     <main class="auth-shell">
         <section class="brand" aria-label="SIMBA">
             <div class="brand-logo">
-                <span class="brand-mark" aria-hidden="true"></span>
-                <span class="brand-name">SIMBA</span>
+                <img src="../../assets/img/SIMBA_LOGO.png" alt="SIMBA" style="height:64px;width:auto;object-fit:contain">
             </div>
             <h1>Welcome to SIMBA</h1>
             <p class="subtitle">SIMBA Asset Management System</p>

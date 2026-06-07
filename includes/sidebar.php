@@ -19,13 +19,7 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
 
     <!-- Logo -->
     <div class="sb-logo">
-        <div class="sb-logo-icon">
-            <svg width="16" height="16" fill="none" stroke="#1a1a1a" stroke-width="2.2" viewBox="0 0 24 24">
-                <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
-                <path d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"/>
-            </svg>
-        </div>
-        <span class="sb-logo-text">SIMBA</span>
+        <img src="<?= app_url('assets/img/SIMBA_LOGO.png') ?>" alt="SIMBA" style="height:36px;width:auto;object-fit:contain;display:block">
     </div>
 
     <!-- Info User -->
@@ -40,8 +34,8 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
     <!-- Navigasi -->
     <nav class="sb-nav">
         <!-- Dashboard: semua role -->
-        <a href="<?= app_url('pages/' . ($peran === 'admin' ? 'admin' : ($peran === 'staff_tu' ? 'admin' : 'peminjaman')) . '/dashboard.php') ?>"
-           class="sb-item <?= sb_active('admin', 'dashboard.php') ?>">
+        <a href="<?= app_url('pages/dashboard/index.php') ?>"
+           class="sb-item <?= sb_active('dashboard', 'index.php') ?>">
             <span class="sb-icon">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -104,7 +98,7 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
 
         <?php if ($peran === 'admin'): ?>
         <!-- Laporan -->
-        <a href="<?= app_url('pages/admin/laporan/index.php') ?>" class="sb-item <?= sb_active('laporan') ?>">
+        <a href="<?= app_url('pages/laporan/index.php') ?>" class="sb-item <?= sb_active('laporan') ?>">
             <span class="sb-icon">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M18 20V10M12 20V4M6 20v-6"/>

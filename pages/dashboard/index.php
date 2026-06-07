@@ -2,7 +2,8 @@
 // =========================================================================
 // KONEKSI DATABASE
 // =========================================================================
-require_once __DIR__ . '/../../koneksi.php';
+require_once __DIR__ . '/../../includes/auth_check.php';
+require_once __DIR__ . '/../../config/koneksi.php';
 
 // =========================================================================
 // QUERY: STATISTIK UTAMA
@@ -72,8 +73,9 @@ $pageCss     = ['assets/css/dashboard.css'];
 // $pageJs   = []; // Tidak ada JS khusus di dashboard saat ini
 
 require_once $basePath . 'includes/header.php';
-require_once $basePath . 'includes/navbar.php';
+require_once $basePath . 'includes/sidebar.php';
 ?>
+<main class="main-content">
 
 <!-- Kartu Statistik Atas -->
 <div class="row g-3 mb-3">
