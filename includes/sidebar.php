@@ -19,7 +19,7 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
 
     <!-- Logo -->
     <div class="sb-logo">
-        <img src="<?= app_url('assets/img/SIMBA_LOGO.png') ?>" alt="SIMBA" style="height:36px;width:auto;object-fit:contain;display:block">
+        <img src="<?= app_url('assets/img/SIMBA LOGO.png') ?>" alt="SIMBA" style="height:36px;width:auto;object-fit:contain;display:block">
     </div>
 
     <!-- Info User -->
