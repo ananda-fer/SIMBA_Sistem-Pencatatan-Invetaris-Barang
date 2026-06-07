@@ -6,7 +6,7 @@
     hanya_role(['admin']);
     
     // KONEKSI DATABASE
-    require_once __DIR__ . '/../../koneksi.php';
+    require_once __DIR__ . '/../../config/koneksi.php';
 
     try {
         $kategori_stmt = $pdo->query("SELECT * FROM kategori");
@@ -21,8 +21,9 @@
 
     
     require_once $basePath . 'includes/header.php';
-    require_once $basePath . 'includes/navbar.php';
+    require_once $basePath . 'includes/sidebar.php';
 ?>
+<main class="main-content">
 
 <h3 class="fw-bold mb-4">Tambah Barang Baru</h3>
 

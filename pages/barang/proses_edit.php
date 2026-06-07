@@ -6,7 +6,7 @@
     hanya_role(['admin', 'staff_tu']);
     
     // KONEKSI DATABASE
-    require_once __DIR__ . '/../../koneksi.php';
+    require_once __DIR__ . '/../../config/koneksi.php';
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         

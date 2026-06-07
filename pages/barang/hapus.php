@@ -6,7 +6,7 @@
     hanya_role(['admin']);
     
     // KONEKSI DATABASE
-    require_once __DIR__ . '/../../koneksi.php';
+    require_once __DIR__ . '/../../config/koneksi.php';
 
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 

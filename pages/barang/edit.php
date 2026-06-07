@@ -6,7 +6,7 @@
     hanya_role(['admin', 'staff_tu']);
     
     // KONEKSI DATABASE
-    require_once __DIR__ . '/../../koneksi.php';
+    require_once __DIR__ . '/../../config/koneksi.php';
 
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -54,8 +54,9 @@
     ';
 
     require_once $basePath . 'includes/header.php';
-    require_once $basePath . 'includes/navbar.php';
+    require_once $basePath . 'includes/sidebar.php';
 ?>
+<main class="main-content">
 
 
 <div class="edit-card">

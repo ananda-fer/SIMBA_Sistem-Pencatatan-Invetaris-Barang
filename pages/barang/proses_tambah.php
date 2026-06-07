@@ -6,7 +6,7 @@
     hanya_role(['admin']);
     
     // KONEKSI DATABASE
-    require_once __DIR__ . '/../../koneksi.php';
+    require_once __DIR__ . '/../../config/koneksi.php';
 
     $kategori_id   = $_POST['kategori_id'];
     $nama          = $_POST['nama'];

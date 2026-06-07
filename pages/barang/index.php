@@ -12,7 +12,7 @@
     }
     
     // KONEKSI DATABASE
-    require_once __DIR__ . '/../../koneksi.php';
+    require_once __DIR__ . '/../../config/koneksi.php';
 
     $search = isset($_GET['cari']) ? $_GET['cari'] : '';
     $filter_kat = isset($_GET['kategori']) ? $_GET['kategori'] : '';
@@ -84,8 +84,9 @@
 
     
     require_once $basePath . 'includes/header.php';
-    require_once $basePath . 'includes/navbar.php';
+    require_once $basePath . 'includes/sidebar.php';
 ?>
+<main class="main-content">
 
         <?php if ($_SESSION['peran'] === 'admin'): ?>
         <?php // TOMBOL TAMBAH KHUSUS ADMIN ?>

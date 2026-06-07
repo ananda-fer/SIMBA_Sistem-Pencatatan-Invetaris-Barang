@@ -1,3 +1,7 @@
+<?php
+// includes/header.php
+$page_title = $pageTitle ?? $page_title ?? 'SIMBA';
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -31,7 +35,7 @@
         ===================== */
         .sidebar {
             width: 220px;
-            background-color: #6e6e6e;
+            background-color: #2a2a2a;
             min-height: 100vh;
             position: fixed;
             top: 0;
@@ -82,7 +86,7 @@
         }
         .sidebar-nav .nav-link.active {
             color: #fca311;
-            background-color: rgba(252,163,17,0.08);
+            background-color: rgba(252, 163, 17, 0.08);
             border-left-color: #fca311;
             font-weight: 600;
         }
@@ -188,5 +192,15 @@
 
     <!-- Page-specific styles placeholder -->
     <?php if (isset($extraStyles)) echo $extraStyles; ?>
+
+    <?php if (function_exists('app_url')): ?>
+        <link rel="stylesheet" href="<?= app_url('assets/css/style.css') ?>">
+        <?php if (!empty($pageCss)): foreach ($pageCss as $css): ?>
+        <link rel="stylesheet" href="<?= app_url($css) ?>">
+        <?php endforeach; endif; ?>
+    <?php else: ?>
+        <link rel="stylesheet" href="<?= ($basePath ?? '../../') . 'assets/css/style.css' ?>">
+    <?php endif; ?>
 </head>
 <body>
+<div class="app-wrapper">
