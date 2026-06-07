@@ -1,114 +1,169 @@
 <?php
-// =========================================================================
-// PROSES CRUD LAPORAN
-// File ini menangani: tambah, edit, hapus laporan dari form di index.php
-// =========================================================================
-require_once __DIR__ . '/../../config/koneksi.php';
 require_once __DIR__ . '/../../includes/auth_check.php';
-require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../config/koneksi.php';
 
 hanya_role(['admin', 'staff_tu']);
 
-// Pastikan request via POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: index.php');
+    header('Location: index.php?tab=arsip');
     exit;
 }
 
-// Ambil aksi yang diminta
 $aksi = $_POST['aksi'] ?? '';
 
 // =========================================================================
-// TAMBAH LAPORAN
+// HELPER: Upload PDF
+// =========================================================================
+function uploadPdf(string $fieldName, ?string $oldPath = null): ?string {
+    if (empty($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] === UPLOAD_ERR_NO_FILE) {
+        return $oldPath; // tidak ada file baru, pakai lama
+    }
+    if ($_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
+        return $oldPath;
+    }
+    $file = $_FILES[$fieldName];
+    $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if ($ext !== 'pdf' || $file['size'] > 5 * 1024 * 1024) {
+        return $oldPath; // abaikan file invalid, pakai lama
+    }
+    $uploadDir = __DIR__ . '/../../uploads/laporan';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+
+    $namaFile = 'laporan_' . $_SESSION['user_id'] . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.pdf';
+    if (move_uploaded_file($file['tmp_name'], $uploadDir . '/' . $namaFile)) {
+        // Hapus file lama jika ada
+        if ($oldPath) {
+            $oldFull = __DIR__ . '/../../' . $oldPath;
+            if (file_exists($oldFull)) @unlink($oldFull);
+        }
+        return 'uploads/laporan/' . $namaFile;
+    }
+    return $oldPath;
+}
+
+// =========================================================================
+// TAMBAH (Create)
 // =========================================================================
 if ($aksi === 'tambah') {
-    $judul        = trim($_POST['judul'] ?? '');
-    $periodeAwal  = $_POST['periode_awal']  ?? '';
-    $periodeAkhir = $_POST['periode_akhir'] ?? '';
-    $jenis        = $_POST['jenis_laporan'] ?? '';
-    $catatan      = trim($_POST['catatan'] ?? '');
+    $judul       = trim($_POST['judul']        ?? '');
+    $jenis       = $_POST['jenis_laporan']     ?? '';
+    $periodeAwal = $_POST['periode_awal']      ?? '';
+    $periodeAkhr = $_POST['periode_akhir']     ?? '';
+    $catatan     = trim($_POST['catatan']      ?? '');
 
-    // Validasi field wajib
-    if (empty($judul) || empty($periodeAwal) || empty($periodeAkhir) || empty($jenis)) {
-        header('Location: index.php?msg=Semua+field+wajib+diisi!&type=danger');
+    if (!$judul || !$jenis || !$periodeAwal || !$periodeAkhr) {
+        $_SESSION['flash_laporan'] = ['type' => 'danger', 'msg' => 'Semua field wajib diisi.'];
+        header('Location: index.php?tab=arsip');
+        exit;
+    }
+    if ($periodeAkhr < $periodeAwal) {
+        $_SESSION['flash_laporan'] = ['type' => 'danger', 'msg' => 'Tanggal akhir periode tidak boleh sebelum tanggal awal.'];
+        header('Location: index.php?tab=arsip');
         exit;
     }
 
-    $dibuatOleh = (int) $_SESSION['user_id'];
+    $filePdf = uploadPdf('file_pdf');
 
     $stmt = $pdo->prepare("
-        INSERT INTO laporan (judul, jenis_laporan, periode_awal, periode_akhir, dibuat_oleh, catatan)
-        VALUES (:judul, :jenis, :awal, :akhir, :oleh, :catatan)
+        INSERT INTO laporan (judul, jenis_laporan, periode_awal, periode_akhir, dibuat_oleh, catatan, file_pdf)
+        VALUES (:judul, :jenis, :awal, :akhir, :oleh, :catatan, :pdf)
     ");
     $stmt->execute([
         ':judul'   => $judul,
         ':jenis'   => $jenis,
         ':awal'    => $periodeAwal,
-        ':akhir'   => $periodeAkhir,
-        ':oleh'    => $dibuatOleh,
-        ':catatan' => $catatan,
+        ':akhir'   => $periodeAkhr,
+        ':oleh'    => $_SESSION['user_id'],
+        ':catatan' => $catatan ?: null,
+        ':pdf'     => $filePdf,
     ]);
 
-    header('Location: index.php?msg=Laporan+berhasil+ditambahkan!&type=success');
+    $_SESSION['flash_laporan'] = ['type' => 'success', 'msg' => 'Laporan "' . htmlspecialchars($judul) . '" berhasil dibuat.'];
+    header('Location: index.php?tab=arsip');
     exit;
 }
 
 // =========================================================================
-// EDIT LAPORAN
+// EDIT (Update)
 // =========================================================================
 if ($aksi === 'edit') {
-    $id           = (int) ($_POST['id'] ?? 0);
-    $judul        = trim($_POST['judul'] ?? '');
-    $periodeAwal  = $_POST['periode_awal']  ?? '';
-    $periodeAkhir = $_POST['periode_akhir'] ?? '';
-    $jenis        = $_POST['jenis_laporan'] ?? '';
-    $catatan      = trim($_POST['catatan'] ?? '');
+    $id          = (int)($_POST['id']          ?? 0);
+    $judul       = trim($_POST['judul']        ?? '');
+    $jenis       = $_POST['jenis_laporan']     ?? '';
+    $periodeAwal = $_POST['periode_awal']      ?? '';
+    $periodeAkhr = $_POST['periode_akhir']     ?? '';
+    $catatan     = trim($_POST['catatan']      ?? '');
 
-    if ($id <= 0 || empty($judul) || empty($periodeAwal) || empty($periodeAkhir) || empty($jenis)) {
-        header('Location: index.php?msg=Data+tidak+valid!&type=danger');
+    if (!$id || !$judul || !$jenis || !$periodeAwal || !$periodeAkhr) {
+        $_SESSION['flash_laporan'] = ['type' => 'danger', 'msg' => 'Data tidak valid.'];
+        header('Location: index.php?tab=arsip');
         exit;
     }
 
+    // Ambil file lama
+    $existing = $pdo->prepare("SELECT file_pdf FROM laporan WHERE id = :id");
+    $existing->execute([':id' => $id]);
+    $oldRow = $existing->fetch();
+    if (!$oldRow) {
+        $_SESSION['flash_laporan'] = ['type' => 'danger', 'msg' => 'Laporan tidak ditemukan.'];
+        header('Location: index.php?tab=arsip');
+        exit;
+    }
+
+    $filePdf = uploadPdf('file_pdf', $oldRow['file_pdf']);
+
     $stmt = $pdo->prepare("
         UPDATE laporan
-        SET judul = :judul,
-            jenis_laporan = :jenis,
-            periode_awal  = :awal,
-            periode_akhir = :akhir,
-            catatan       = :catatan
+        SET judul        = :judul,
+            jenis_laporan= :jenis,
+            periode_awal = :awal,
+            periode_akhir= :akhir,
+            catatan      = :catatan,
+            file_pdf     = :pdf
         WHERE id = :id
     ");
     $stmt->execute([
         ':judul'   => $judul,
         ':jenis'   => $jenis,
         ':awal'    => $periodeAwal,
-        ':akhir'   => $periodeAkhir,
-        ':catatan' => $catatan,
+        ':akhir'   => $periodeAkhr,
+        ':catatan' => $catatan ?: null,
+        ':pdf'     => $filePdf,
         ':id'      => $id,
     ]);
 
-    header('Location: index.php?msg=Laporan+berhasil+diperbarui!&type=success');
+    $_SESSION['flash_laporan'] = ['type' => 'success', 'msg' => 'Laporan berhasil diperbarui.'];
+    header('Location: index.php?tab=arsip');
     exit;
 }
 
 // =========================================================================
-// HAPUS LAPORAN
+// HAPUS (Delete)
 // =========================================================================
 if ($aksi === 'hapus') {
-    $id = (int) ($_POST['id'] ?? 0);
-
-    if ($id <= 0) {
-        header('Location: index.php?msg=ID+laporan+tidak+valid!&type=danger');
+    $id = (int)($_POST['id'] ?? 0);
+    if (!$id) {
+        header('Location: index.php?tab=arsip');
         exit;
     }
 
-    $stmt = $pdo->prepare("DELETE FROM laporan WHERE id = :id");
-    $stmt->execute([':id' => $id]);
+    // Ambil & hapus file PDF
+    $existing = $pdo->prepare("SELECT file_pdf, judul FROM laporan WHERE id = :id");
+    $existing->execute([':id' => $id]);
+    $row = $existing->fetch();
 
-    header('Location: index.php?msg=Laporan+berhasil+dihapus!&type=success');
+    if ($row) {
+        if ($row['file_pdf']) {
+            $fullPath = __DIR__ . '/../../' . $row['file_pdf'];
+            if (file_exists($fullPath)) @unlink($fullPath);
+        }
+        $pdo->prepare("DELETE FROM laporan WHERE id = :id")->execute([':id' => $id]);
+        $_SESSION['flash_laporan'] = ['type' => 'success', 'msg' => 'Laporan "' . htmlspecialchars($row['judul']) . '" berhasil dihapus.'];
+    }
+
+    header('Location: index.php?tab=arsip');
     exit;
 }
 
-// Jika aksi tidak dikenali, redirect kembali
-header('Location: index.php');
+header('Location: index.php?tab=arsip');
 exit;

@@ -2,11 +2,8 @@
 // =========================================================================
 // KONEKSI DATABASE
 // =========================================================================
-require_once __DIR__ . '/../../config/koneksi.php';
 require_once __DIR__ . '/../../includes/auth_check.php';
-require_once __DIR__ . '/../../includes/functions.php';
-
-hanya_role(['admin', 'staff_tu']);
+require_once __DIR__ . '/../../config/koneksi.php';
 
 // =========================================================================
 // QUERY: STATISTIK UTAMA
@@ -70,23 +67,15 @@ $aktivitasTerkini = $pdo->query("
 // PAGE CONFIGURATION
 // =========================================================================
 $pageTitle   = 'Dashboard Admin';
-$page_title  = $pageTitle;
 $currentPage = 'dashboard';
 $basePath    = '../../';
 $pageCss     = ['assets/css/dashboard.css'];
 // $pageJs   = []; // Tidak ada JS khusus di dashboard saat ini
 
-require_once __DIR__ . '/../../includes/header.php';
-require_once __DIR__ . '/../../includes/sidebar.php';
+require_once $basePath . 'includes/header.php';
+require_once $basePath . 'includes/sidebar.php';
 ?>
-
 <main class="main-content">
-<div class="page-header">
-    <div>
-        <h2>Dashboard Admin</h2>
-        <p>Ringkasan inventaris, peminjaman, dan aktivitas terbaru</p>
-    </div>
-</div>
 
 <!-- Kartu Statistik Atas -->
 <div class="row g-3 mb-3">
@@ -261,6 +250,4 @@ require_once __DIR__ . '/../../includes/sidebar.php';
     </div>
 </div>
 
-</main>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+<?php require_once $basePath . 'includes/footer.php'; ?>
