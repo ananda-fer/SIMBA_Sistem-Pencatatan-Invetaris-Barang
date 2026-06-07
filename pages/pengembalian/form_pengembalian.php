@@ -1,108 +1,161 @@
 <?php
-session_start();
-require_once '../../config.php';
+require_once __DIR__ . '/../../config/koneksi.php';
+require_once __DIR__ . '/../../includes/auth_check.php';
+require_once __DIR__ . '/../../includes/functions.php';
 
-if (!isset($_GET['id']) || empty($_GET['id'])){
-    die("Error: ID Peminjaman Tidak Ditemukan!");
+hanya_role(['admin', 'staff_tu']);
+
+if (!isset($_GET['id']) || empty($_GET['id'])) {
+    flash('error', 'ID peminjaman tidak ditemukan.');
+    redirect(app_url('pages/pengembalian/index.php'));
 }
 
-$id_peminjaman = intval($_GET['id']);
+$id_peminjaman = (int)$_GET['id'];
 
-$query_peminjaman = "SELECT p.*, u.nama_lengkap
-                    FROM pengajuan_peminjaman p
-                    JOIN users u ON p.id_peminjam = u.id
-                    WHERE p.id = $id_peminjaman AND p.status = 'aktif'";
+$stmt = $conn->prepare("SELECT p.*, u.nama_lengkap FROM pengajuan_peminjaman p JOIN users u ON p.id_peminjam = u.id WHERE p.id = ? AND p.status = 'aktif'");
+$stmt->bind_param('i', $id_peminjaman);
+$stmt->execute();
+$data = $stmt->get_result()->fetch_assoc();
 
-$result_peminjaman = mysqli_query($koneksi, $query_peminjaman);
-
-if (mysqli_num_rows($result_peminjaman) === 0){
-    die("Error: Data peminjam tidak ditemukan atau transaksi sudah selesai");
+if (!$data) {
+    flash('error', 'Data peminjaman tidak ditemukan atau sudah selesai.');
+    redirect(app_url('pages/pengembalian/index.php'));
 }
 
-$data_peminjaman = mysqli_fetch_assoc($result_peminjaman);
+$stmt_barang = $conn->prepare("SELECT dp.*, b.nama AS nama_barang, b.kode_barang FROM detail_peminjaman dp JOIN barang b ON dp.id_barang = b.id WHERE dp.id_peminjaman = ?");
+$stmt_barang->bind_param('i', $id_peminjaman);
+$stmt_barang->execute();
+$barang_list = $stmt_barang->get_result()->fetch_all(MYSQLI_ASSOC);
 
-$query_barang = "SELECT dp.*, b.nama AS nama_barang, b.kode_barang
-                FROM detail_peminjaman dp
-                JOIN barang b ON dp.id_barang = b.id
-                WHERE dp.id_peminjaman = $id_peminjaman";
+$hari_sisa   = (int) ceil((strtotime($data['tanggal_kembali']) - time()) / 86400);
+$sudah_lewat = $hari_sisa < 0;
 
-$result_barang = mysqli_query($koneksi, $query_barang);
+$flash_success = get_flash('success');
+$flash_error   = get_flash('error');
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Pengembalian Barang</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Proses Pengembalian — SIMBA</title>
+    <link rel="stylesheet" href="<?= app_url('assets/css/style.css') ?>">
 </head>
 <body>
-    <h2 class="text-2x1 font-bold text-gray-800 mb-2">Form Proses Pengembalian Barang</h2>
-    <a href="index.php" class="text-sm text-blue-500 rounded-x1 hover:underline transition">Kembali ke Daftar</a>
-    <hr>
 
-    <h3>Informasi Peminjaman</h3>
-    <table cellpadding="5">
-        <tr>
-            <td><strong>Nama Peminjam: </strong></td>
-            <td><?php echo htmlspecialchars($data_peminjaman['nama_lengkap']); ?></td>
-        </tr>
-        <tr>
-            <td><strong>Keperluan: </strong></td>
-            <td><?php echo htmlspecialchars($data_peminjaman['keperluan']); ?></td>
-        </tr>
-        <tr>
-            <td><strong>Tanggal Pinjam: </strong></td>
-            <td><?php echo date('d-m-Y', strtotime($data_peminjaman['tanggal_pinjam'])); ?></td>
-        </tr>
-        <tr>
-            <td><strong>Batas dikembalikan: </strong></td>
-            <td><?php echo date('d-m-Y', strtotime($data_peminjaman['tanggal_kembali'])); ?></td>
-        </tr>
-    </table>
+<?php if ($flash_success): ?>
+<script>alert("<?= addslashes($flash_success) ?>")</script>
+<?php endif; ?>
+<?php if ($flash_error): ?>
+<script>alert("<?= addslashes($flash_error) ?>")</script>
+<?php endif; ?>
 
-    <h3>Daftar Barang yang dipinjam</h3>
-    <ul>
-        <?php while ($barang = mysqli_fetch_assoc($result_barang)){?>
-            <li>
-                <strong><?php echo htmlspecialchars($barang['nama_barang']); ?></strong>
-                (Kode: <?php echo htmlspecialchars($barang['kode_barang']); ?>) -
-                Jumlah: <?php echo $barang['jumlah']; ?> unit
-            </li>
-            <?php } ?>
-    </ul>
-    <hr>
-    
-    <h3>Input Data Pengembalian: </h3>
-    <form action="proses_pengembalian.php" method="POST">
-        <input type="hidden" name="id_peminjaman" value="<?php echo $id_peminjaman; ?>">
-        <table cellpadding="8">
-            <tr>
-                <td><label for="tanggal_kembali">Tanggal dikembalikan</label></td>
-                <td><input type="date" id="tanggal_kembali" name="tanggal_kembali" value="<?php echo date('Y-m-d'); ?>"required></td>
-            </tr>
-            <tr>
-                <td><label for="kondisi_kembali">Kondisi Barang:</label></td>
-                <td>
-                    <select id="kondisi_kembali" name="kondisi_kembali" required>
+<div class="app-wrapper">
+    <?php include __DIR__ . '/../../includes/sidebar.php'; ?>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h2>Proses Pengembalian</h2>
+                <p>Input data pengembalian barang peminjaman</p>
+            </div>
+            <a href="index.php" class="btn btn-outline">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                Kembali
+            </a>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px">
+
+            <div class="card">
+                <div style="font-weight:700; font-size:13px; color:#1a1a1a; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border)">
+                    Informasi Peminjaman
+                </div>
+                <table style="width:100%; border-collapse:collapse;font-size:13px">
+                    <tr>
+                        <td style="color:#6b7280; padding:5px 0; width:140px">Nama Peminjam</td>
+                        <td style="font-weight:600; color:#1a1a1a"><?= sanitasi($data['nama_lengkap']) ?></td>
+                    </tr>
+                    <tr>
+                        <td style="color:#6b7280; padding:5px 0">Keperluan</td>
+                        <td><?= sanitasi($data['keperluan']) ?></td>
+                    </tr>
+                    <tr>
+                        <td style="color:#6b7280; padding:5px 0">Tanggal Pinjam</td>
+                        <td><?= fmt_tgl($data['tanggal_pinjam']) ?></td>
+                    </tr>
+                    <tr>
+                        <td style="color:#6b7280; padding:5px 0">Batas Kembali</td>
+                        <td>
+                            <span style="<?= $sudah_lewat ? 'color:#dc2626;font-weight:600' : 'color:#059669; font-weight:600' ?>">
+                                <?= fmt_tgl($data['tanggal_kembali']) ?>
+                            </span>
+                            <?php if ($sudah_lewat): ?>
+                            <div style="font-size:11px; color:#dc2626; margin-top:2px"><?= abs($hari_sisa) ?> hari terlambat</div>
+                            <?php else: ?>
+                            <div style="font-size:11px; color:#6b7280; margin-top:2px">Sisa <?= $hari_sisa ?> hari</div>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <div style="font-weight:700; font-size:13px; color:#1a1a1a; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border)">
+                    Barang yang Dipinjam
+                </div>
+                <?php foreach ($barang_list as $b): ?>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0;border-bottom:1px solid var(--border-light); font-size:13px">
+                    <div>
+                        <div style="font-weight:600; color:#1a1a1a"><?= sanitasi($b['nama_barang']) ?></div>
+                        <div style="font-size:11px; color:#6b7280"><?= sanitasi($b['kode_barang']) ?></div>
+                    </div>
+                    <span class="badge badge-aktif"><?= (int)$b['jumlah'] ?> unit</span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="card" style="max-width:560px">
+            <div style="font-weight:700; font-size:13px; color:#1a1a1a; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid var(--border)">
+                Data Pengembalian
+            </div>
+            <form action="proses_pengembalian.php" method="POST">
+                <input type="hidden" name="id_peminjaman" value="<?= $id_peminjaman ?>">
+
+                <div class="form-group">
+                    <label class="form-label">Tanggal Dikembalikan</label>
+                    <input type="date" name="tanggal_kembali" class="form-input"
+                           value="<?= date('Y-m-d') ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Kondisi Barang</label>
+                    <select name="kondisi_kembali" class="form-input" required>
                         <option value="baik">Baik</option>
                         <option value="rusak_ringan">Rusak Ringan</option>
                         <option value="rusak_berat">Rusak Berat</option>
                     </select>
-                </td>
-            </tr>
-            <tr>
-                <td><label for="catatan_kerusakan">Catatan Kondisi / Kerusakan:</label></td>
-                <td><textarea id="catatan_kerusakan" name="catatan_kerusakan" rows="4" cols="40" placeholder="Isi jika barang rusak..."></textarea></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td>
-                    <button type="submit" name="submit_kembali">Simpan Pengembalian</button>
-                </td>
-            </tr>
-        </table>
-    </form>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Catatan Kondisi / Kerusakan</label>
+                    <textarea name="catatan_kerusakan" class="form-input" rows="3"
+                              placeholder="Isi jika ada catatan kondisi atau kerusakan..."></textarea>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:8px">
+                    <button type="submit" name="submit_kembali" class="btn btn-primary btn-kirim">
+                        Simpan Pengembalian
+                    </button>
+                    <a href="index.php" class="btn btn-outline">Batal</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+<script src="<?= app_url('assets/js/app.js') ?>"></script>
 </body>
 </html>

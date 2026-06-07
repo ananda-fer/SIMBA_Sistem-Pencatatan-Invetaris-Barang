@@ -1,21 +1,10 @@
-    </div>
-    <!-- PAGE CONTENT END -->
+  </main><!-- end main-content -->
+</div><!-- end app-wrapper -->
 
-    <!-- =====================
-         FOOTER
-    ===================== -->
-    <footer class="main-footer">
-        <p class="mb-0">&copy; <?php echo date('Y'); ?> <strong>SIMBA</strong> &mdash; Sistem Pencatatan Inventaris Barang. All rights reserved.</p>
-    </footer>
-
-</div>
-<!-- MAIN WRAPPER END -->
-
-<!-- Bootstrap JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Page-specific scripts placeholder -->
-<?php if (isset($extraScripts)) echo $extraScripts; ?>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= app_url('assets/js/app.js') ?>"></script>
+<?php if (!empty($pageJs)): foreach ($pageJs as $js): ?>
+<script src="<?= app_url($js) ?>"></script>
+<?php endforeach; endif; ?>
 </body>
 </html>

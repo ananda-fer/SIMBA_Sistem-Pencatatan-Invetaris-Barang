@@ -1,91 +1,69 @@
 <?php
-session_start();
-require_once '../../config.php';
+require_once __DIR__ . '/../../config/koneksi.php';
+require_once __DIR__ . '/../../includes/auth_check.php';
+require_once __DIR__ . '/../../includes/functions.php';
 
-if (!isset($_POST['submit_edit'])){
-    header("Location: index.php");
-    exit();
+hanya_role(['admin', 'staff_tu']);
+
+if (!isset($_POST['submit_edit'])) {
+    redirect(app_url('pages/pengembalian/index.php'));
 }
 
-$id_pengembalian = intval($_POST['id_pengembalian']);
-$tanggal_kembali_aktual = $_POST['tanggal_kembali'];
-$kondisi_kembali = mysqli_real_escape_string($koneksi, $_POST['kondisi_kembali']);
-$catatan_kerusakan = mysqli_real_escape_string($koneksi, $_POST['catatan_kerusakan']);
+$id_pengembalian = (int)$_POST['id_pengembalian'];
+$tanggal_kembali_aktual = $_POST['tanggal_kembali'] ?? '';
+$kondisi_kembali = $_POST['kondisi_kembali'] ?? '';
+$catatan_kerusakan = trim($_POST['catatan_kerusakan'] ?? '');
 
 $allowed = ['baik', 'rusak_ringan', 'rusak_berat'];
-if (!in_array($kondisi_kembali, $allowed)){
-    $_SESSION['error'] = "Pilihan kondisi tidak valid!";
-    header("Location: index.php");
-    exit();
+if (!in_array($kondisi_kembali, $allowed) || !$tanggal_kembali_aktual) {
+    flash('error', 'Data tidak valid. Periksa kembali isian form.');
+    redirect(app_url('pages/pengembalian/index.php?tab=riwayat'));
 }
 
-$query_peminjaman = "SELECT p.tanggal_kembali, kr.id_peminjaman 
-                     FROM pengembalian kr
-                     JOIN pengajuan_peminjaman p ON kr.id_peminjaman = p.id
-                     WHERE kr.id = $id_pengembalian";
+$stmt_cek = $conn->prepare("SELECT p.tanggal_kembali, kr.id_peminjaman FROM pengembalian kr JOIN pengajuan_peminjaman p ON kr.id_peminjaman = p.id WHERE kr.id = ?");
+$stmt_cek->bind_param('i', $id_pengembalian);
+$stmt_cek->execute();
+$data = $stmt_cek->get_result()->fetch_assoc();
 
-$result_peminjaman = mysqli_query($koneksi, $query_peminjaman);
-
-if (mysqli_num_rows($result_peminjaman) === 0){
-    $_SESSION['error'] = "Data pengembalian tidak ditemukan!";
-    header("Location: index.php");
-    exit();
+if (!$data) {
+    flash('error', 'Data pengembalian tidak ditemukan.');
+    redirect(app_url('pages/pengembalian/index.php?tab=riwayat'));
 }
-
-$data_peminjaman = mysqli_fetch_assoc($result_peminjaman);
-$batas_kembali = $data_peminjaman['tanggal_kembali'];
-$id_peminjaman = $data_peminjaman['id_peminjaman'];
 
 $hari_terlambat = 0;
-$date_batas = new DateTime($batas_kembali);
+$date_batas  = new DateTime($data['tanggal_kembali']);
 $date_aktual = new DateTime($tanggal_kembali_aktual);
-
 if ($date_aktual > $date_batas) {
-    $selisih = $date_aktual->diff($date_batas);
-    $hari_terlambat = $selisih->days;
+    $hari_terlambat = (int)$date_aktual->diff($date_batas)->days;
 }
 
-mysqli_begin_transaction($koneksi);
+$id_peminjaman = $data['id_peminjaman'];
+$conn->begin_transaction();
 $success = true;
 
-$query_update_kembali = "UPDATE pengembalian 
-                         SET tanggal_kembali = '$tanggal_kembali_aktual', 
-                             hari_terlambat = $hari_terlambat, 
-                             kondisi_kembali = '$kondisi_kembali', 
-                             catatan_kerusakan = '$catatan_kerusakan' 
-                         WHERE id = $id_pengembalian";
+$stmt_update = $conn->prepare("UPDATE pengembalian SET tanggal_kembali = ?, hari_terlambat = ?, kondisi_kembali = ?, catatan_kerusakan = ? WHERE id = ?");
+$stmt_update->bind_param('sissi', $tanggal_kembali_aktual, $hari_terlambat, $kondisi_kembali, $catatan_kerusakan, $id_pengembalian);
+if (!$stmt_update->execute()) $success = false;
 
-if (!mysqli_query($koneksi, $query_update_kembali)){
-    $success = false;
-}
+if ($success) {
+    $stmt_detail = $conn->prepare("SELECT id_barang FROM detail_peminjaman WHERE id_peminjaman = ?");
+    $stmt_detail->bind_param('i', $id_peminjaman);
+    $stmt_detail->execute();
+    $detail_list = $stmt_detail->get_result()->fetch_all(MYSQLI_ASSOC);
 
-if ($success){
-    $query_detail = "SELECT id_barang FROM detail_peminjaman WHERE id_peminjaman = $id_peminjaman";
-    $result_detail = mysqli_query($koneksi, $query_detail);
-    
-    if ($result_detail) {
-        while ($detail = mysqli_fetch_assoc($result_detail)) {
-            $id_barang = $detail['id_barang'];
-
-            $query_update_kondisi = "UPDATE barang SET kondisi = '$kondisi_kembali' WHERE id = $id_barang";
-            if (!mysqli_query($koneksi, $query_update_kondisi)) {
-                $success = false;
-                break;
-            }
-        }
-    } else {
-        $success = false;
+    foreach ($detail_list as $d) {
+        $stmt_kondisi = $conn->prepare("UPDATE barang SET kondisi = ? WHERE id = ?");
+        $stmt_kondisi->bind_param('si', $kondisi_kembali, $d['id_barang']);
+        if (!$stmt_kondisi->execute()) { $success = false; break; }
     }
 }
 
-if ($success){
-    mysqli_commit($koneksi);
-    $_SESSION['success'] = "Data pengembalian berhasil diperbarui dan disinkronkan";
+if ($success) {
+    $conn->commit();
+    flash('success', 'Data pengembalian berhasil diperbarui.');
 } else {
-    mysqli_rollback($koneksi);
-    $_SESSION['error'] = "Gagal memperbarui data pengembalian. Silakan coba lagi";
+    $conn->rollback();
+    flash('error', 'Gagal memperbarui data pengembalian. Silakan coba lagi.');
 }
 
-header("Location: index.php");
-exit();
-?>
+redirect(app_url('pages/pengembalian/index.php?tab=riwayat'));

@@ -1,72 +1,61 @@
 <?php
-session_start();
-require_once '../../config.php';
+require_once __DIR__ . '/../../config/koneksi.php';
+require_once __DIR__ . '/../../includes/auth_check.php';
+require_once __DIR__ . '/../../includes/functions.php';
 
-if (!isset($_GET['id']) || empty($_GET['id'])){
-    $_SESSION['error'] = "ID Pengembalian tidak valid";
-    header("Location: index.php");
-    exit();
+hanya_role(['admin', 'staff_tu']);
+
+if (!isset($_GET['id']) || empty($_GET['id'])) {
+    flash('error', 'ID pengembalian tidak valid.');
+    redirect(app_url('pages/pengembalian/index.php?tab=riwayat'));
 }
 
-$id_pengembalian = intval($_GET['id']);
+$id_pengembalian = (int)$_GET['id'];
 
-$query_cek = "SELECT kr.id_peminjaman FROM pengembalian kr
-            WHERE kr.id = $id_pengembalian";
-$result_cek = mysqli_query($koneksi, $query_cek);
+$stmt_cek = $conn->prepare("SELECT id_peminjaman FROM pengembalian WHERE id = ?");
+$stmt_cek->bind_param('i', $id_pengembalian);
+$stmt_cek->execute();
+$data = $stmt_cek->get_result()->fetch_assoc();
 
-if (mysqli_num_rows($result_cek) === 0) {
-    $_SESSION['error'] = "Data pengembalian tidak ditemukan";
-    header("Location: index.php");
-    exit();
+if (!$data) {
+    flash('error', 'Data pengembalian tidak ditemukan.');
+    redirect(app_url('pages/pengembalian/index.php?tab=riwayat'));
 }
 
-$data_pengembalian = mysqli_fetch_assoc($result_cek);
-$id_peminjaman = $data_pengembalian['id_peminjaman'];
-mysqli_begin_transaction($koneksi);
+$id_peminjaman = $data['id_peminjaman'];
+
+$conn->begin_transaction();
 $success = true;
 
-$query_detail = "SELECT id_barang, jumlah FROM detail_peminjaman
-                WHERE id_peminjaman = $id_peminjaman";
-$result_detail = mysqli_query($koneksi, $query_detail);
+$stmt_detail = $conn->prepare("SELECT id_barang, jumlah FROM detail_peminjaman WHERE id_peminjaman = ?");
+$stmt_detail->bind_param('i', $id_peminjaman);
+$stmt_detail->execute();
+$detail_list = $stmt_detail->get_result()->fetch_all(MYSQLI_ASSOC);
 
-if ($result_detail){
-    while ($detail = mysqli_fetch_assoc($result_detail)){
-        $id_barang = $detail['id_barang'];
-        $jumlah = $detail['jumlah'];
+foreach ($detail_list as $d) {
+    $stmt_stok = $conn->prepare("UPDATE barang SET stok_tersedia = stok_tersedia - ? WHERE id = ?");
+    $stmt_stok->bind_param('ii', $d['jumlah'], $d['id_barang']);
+    if (!$stmt_stok->execute()) { $success = false; break; }
+}
 
-        $query_update_stok = "UPDATE barang SET stok_tersedia = stok_tersedia - $jumlah WHERE id = $id_barang";
-        if (!mysqli_query($koneksi, $query_update_stok)){
-            $success = false;
-            break;
-        }   
-    }
+if ($success) {
+    $stmt_status = $conn->prepare("UPDATE pengajuan_peminjaman SET status = 'aktif' WHERE id = ?");
+    $stmt_status->bind_param('i', $id_peminjaman);
+    if (!$stmt_status->execute()) $success = false;
+}
+
+if ($success) {
+    $stmt_hapus = $conn->prepare("DELETE FROM pengembalian WHERE id = ?");
+    $stmt_hapus->bind_param('i', $id_pengembalian);
+    if (!$stmt_hapus->execute()) $success = false;
+}
+
+if ($success) {
+    $conn->commit();
+    flash('success', 'Data pengembalian berhasil dihapus. Status peminjaman kembali menjadi aktif.');
 } else {
-    $success = false;
+    $conn->rollback();
+    flash('error', 'Gagal menghapus data pengembalian. Silakan coba lagi.');
 }
 
-if ($success){
-    $query_update_status = "UPDATE pengajuan_peminjaman SET status = 'aktif'
-                            WHERE id = $id_peminjaman";
-    if (!mysqli_query($koneksi, $query_update_status)){
-        $success = false;
-    }
-}
-
-if ($success){
-    $query_delete = "DELETE FROM pengembalian WHERE id = $id_pengembalian";
-    if (!mysqli_query($koneksi, $query_delete)){
-        $success = false;   
-    }
-}
-
-if ($success){
-    mysqli_commit($koneksi);
-    $_SESSION['success'] = "Data pengembalian berhasil dihapus dan peminjaman aktif kembali";
-} else {
-    mysqli_rollback($koneksi);
-    $_SESSION['error'] = "Gagal menghapus data pengembalian. Coba lagi";
-}
-
-header("Location: index.php");
-exit();
-?>
+redirect(app_url('pages/pengembalian/index.php?tab=riwayat'));
