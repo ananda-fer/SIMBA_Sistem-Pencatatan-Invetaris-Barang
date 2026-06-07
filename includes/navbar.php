@@ -17,9 +17,9 @@ $currentPage = isset($currentPage) ? $currentPage : '';
             // Cek role user, jika admin atau staff maka tampilkan menu dashboard
             // Pastikan session_start() sudah dipanggil di awal aplikasi dan $_SESSION['role'] sudah diset saat login
             // Contoh: $_SESSION['role'] = 'admin';
-            $userRole = isset($_SESSION['role']) ? $_SESSION['role'] : 'admin'; // Default 'admin' untuk preview, ganti dengan session asli Anda
+            $userRole = $_SESSION['peran'] ?? ($_SESSION['role'] ?? 'peminjam');
             
-            if(in_array($userRole, ['admin', 'staff'])): 
+            if(in_array($userRole, ['admin', 'staff_tu'])): 
             ?>
             <li class="nav-item">
                 <a class="nav-link <?php echo ($currentPage === 'dashboard') ? 'active' : ''; ?>"
@@ -43,6 +43,15 @@ $currentPage = isset($currentPage) ? $currentPage : '';
                     Permintaan Saya
                 </a>
             </li>
+            <?php if($userRole === 'admin'): ?>
+            <li class="nav-item">
+                <a class="nav-link <?php echo ($currentPage === 'user') ? 'active' : ''; ?>"
+                   href="<?php echo $basePath; ?>pages/user/listuser.php">
+                    <i class="fa-solid fa-users-gear"></i>
+                    Kelola User
+                </a>
+            </li>
+            <?php endif; ?>
             <li class="nav-item">
                 <a class="nav-link <?php echo ($currentPage === 'pengembalian') ? 'active' : ''; ?>"
                    href="<?php echo $basePath; ?>pages/pengembalian/index.php">
@@ -50,7 +59,7 @@ $currentPage = isset($currentPage) ? $currentPage : '';
                     Riwayat
                 </a>
             </li>
-            <?php if(in_array($userRole, ['admin', 'staff'])): ?>
+            <?php if(in_array($userRole, ['admin', 'staff_tu'])): ?>
             <li class="nav-item">
                 <a class="nav-link <?php echo ($currentPage === 'laporan') ? 'active' : ''; ?>"
                    href="<?php echo $basePath; ?>pages/laporan/index.php">
@@ -71,7 +80,7 @@ $currentPage = isset($currentPage) ? $currentPage : '';
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="<?php echo $basePath; ?>logout.php">
+                <a class="nav-link" href="<?php echo $basePath; ?>pages/auth/logout.php">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     Logout
                 </a>
@@ -103,7 +112,7 @@ $currentPage = isset($currentPage) ? $currentPage : '';
                 <li><a class="dropdown-item" href="#"><i class="fa-regular fa-user me-2"></i>Profile</a></li>
                 <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="<?php echo $basePath; ?>logout.php"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+                <li><a class="dropdown-item text-danger" href="<?php echo $basePath; ?>pages/auth/logout.php"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
             </ul>
         </div>
     </div>

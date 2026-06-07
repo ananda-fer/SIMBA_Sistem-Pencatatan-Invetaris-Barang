@@ -66,7 +66,7 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
 
         <?php if ($peran === 'admin'): ?>
         <!-- Kelola User -->
-        <a href="<?= app_url('pages/admin/user/index.php') ?>" class="sb-item <?= sb_active('user') ?>">
+        <a href="<?= app_url('pages/user/listuser.php') ?>" class="sb-item <?= sb_active('user') ?>">
             <span class="sb-icon">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
