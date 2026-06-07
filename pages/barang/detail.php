@@ -1,5 +1,17 @@
 <?php
+    // CEK LOGIN DULU
+    require_once '../../includes/auth_check.php';
     
+    // AKTIFKAN SESSION SEMENTARA UNTUK TESTING
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    // PERAN SEMENTARA (Ubah ke 'admin', 'staff_tu', atau 'peminjam' untuk tes)
+    if (!isset($_SESSION['peran'])) {
+        $_SESSION['peran'] = 'admin';
+    }
+    
+    // KONEKSI DATABASE
     require_once __DIR__ . '/../../koneksi.php';
 
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -134,9 +146,12 @@
     </div>
 
     <div class="d-flex gap-2 mt-4">
+        <?php if ($_SESSION['peran'] === 'admin' || $_SESSION['peran'] === 'staff_tu'): ?>
+        <?php // TOMBOL EDIT UNTUK PETUGAS ?>
         <a href="edit.php?id=<?php echo $barang['id']; ?>" class="btn btn-warning fw-bold px-4">
             <i class="fa-solid fa-pen-to-square me-1"></i> Edit
         </a>
+        <?php endif; ?>
         <a href="index.php" class="btn btn-dark fw-bold px-4">
             <i class="fa-solid fa-arrow-left me-1"></i> Kembali
         </a>

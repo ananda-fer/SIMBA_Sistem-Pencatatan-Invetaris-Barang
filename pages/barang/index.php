@@ -1,5 +1,17 @@
 <?php
+    // CEK LOGIN DULU
+    require_once '../../includes/auth_check.php';
     
+    // AKTIFKAN SESSION SEMENTARA UNTUK TESTING
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    // PERAN SEMENTARA (Ubah ke 'admin', 'staff_tu', atau 'peminjam' untuk tes)
+    if (!isset($_SESSION['peran'])) {
+        $_SESSION['peran'] = 'admin';
+    }
+    
+    // KONEKSI DATABASE
     require_once __DIR__ . '/../../koneksi.php';
 
     $search = isset($_GET['cari']) ? $_GET['cari'] : '';
@@ -75,8 +87,10 @@
     require_once $basePath . 'includes/navbar.php';
 ?>
 
+        <?php if ($_SESSION['peran'] === 'admin'): ?>
+        <?php // TOMBOL TAMBAH KHUSUS ADMIN ?>
         <a href="tambah.php" class="btn btn-warning fw-bold mb-3"><i class="bi bi-bag-plus-fill"></i> Tambah Barang</a>
-
+        <?php endif; ?>
         <!-- FORM FILTER KATALOG BARANG -->
         <div class="filter-box mb-4">
         <form method="GET" class="row g-3">
@@ -144,8 +158,14 @@
                 <td><span class="badge <?php echo $status_badge[$row['status']] ?? 'bg-secondary'; ?>"><?php echo str_replace('_', ' ', $row['status']); ?></span></td>
                 <td>
                     <a href="detail.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">Detail</a>
-                    <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="hapus.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">Hapus</a>
+                    <?php if ($_SESSION['peran'] === 'admin' || $_SESSION['peran'] === 'staff_tu'): ?>
+                        <?php // TOMBOL EDIT ?>
+                        <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">Edit</a>
+                    <?php endif; ?>
+                    <?php if ($_SESSION['peran'] === 'admin'): ?>
+                        <?php // TOMBOL HAPUS KHUSUS ADMIN ?>
+                        <a href="hapus.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">Hapus</a>
+                    <?php endif; ?>
                 </td>
             </tr>
             <?php endforeach; ?>

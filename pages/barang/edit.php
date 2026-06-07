@@ -1,5 +1,11 @@
 <?php
+    // CEK LOGIN DULU
+    require_once '../../includes/auth_check.php';
     
+    // HANYA ADMIN DAN STAFF
+    hanya_role(['admin', 'staff_tu']);
+    
+    // KONEKSI DATABASE
     require_once __DIR__ . '/../../koneksi.php';
 
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
