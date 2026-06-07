@@ -91,6 +91,26 @@ if ($jenis === 'pengembalian' || $jenis === 'semua') {
     foreach ($dataKembali as $k) $mapKembali[$k['pp_id']] = $k;
 }
 
+// --- INVENTARIS ---
+if ($jenis === 'inventaris') {
+    $stmtInv = $pdo->prepare("
+        SELECT
+            b.id, b.kode_barang, b.nama, b.stok_total, b.stok_tersedia,
+            b.kondisi, b.status,
+            k.nama AS nama_kategori,
+            COUNT(DISTINCT dp.id_peminjaman) AS dipinjam_periode
+        FROM barang b
+        LEFT JOIN kategori k ON k.id = b.kategori_id
+        LEFT JOIN detail_peminjaman dp ON dp.id_barang = b.id
+        LEFT JOIN pengajuan_peminjaman pp ON pp.id = dp.id_peminjaman
+            AND pp.tanggal_pinjam BETWEEN :awal AND :akhir
+        GROUP BY b.id
+        ORDER BY dipinjam_periode DESC, b.nama ASC
+    ");
+    $stmtInv->execute([':awal' => $awal, ':akhir' => $akhir]);
+    $dataInventaris = $stmtInv->fetchAll();
+}
+
 // =========================================================================
 // STATISTIK
 // =========================================================================
@@ -113,6 +133,14 @@ if ($jenis === 'peminjaman') {
         'Rusak Berat'        => count(array_filter($dataKembali, fn($r) => $r['kondisi_kembali'] === 'rusak_berat')),
         'Terlambat'          => count(array_filter($dataKembali, fn($r) => (int)$r['hari_terlambat'] > 0)),
     ];
+} elseif ($jenis === 'inventaris') {
+    $stat = [
+        'Total Barang'      => count($dataInventaris),
+        'Kondisi Baik'      => count(array_filter($dataInventaris, fn($r) => $r['kondisi'] === 'baik')),
+        'Rusak Ringan'      => count(array_filter($dataInventaris, fn($r) => $r['kondisi'] === 'rusak_ringan')),
+        'Rusak Berat'       => count(array_filter($dataInventaris, fn($r) => $r['kondisi'] === 'rusak_berat')),
+        'Pernah Dipinjam'   => count(array_filter($dataInventaris, fn($r) => (int)$r['dipinjam_periode'] > 0)),
+    ];
 } else { // semua
     $stat = [
         'Total Pengajuan'    => count($dataPinjam),
@@ -125,7 +153,7 @@ if ($jenis === 'peminjaman') {
 // =========================================================================
 // PAGE CONFIG
 // =========================================================================
-$jenisBadge = ['peminjaman' => 'PEMINJAMAN', 'pengembalian' => 'PENGEMBALIAN', 'semua' => 'SEMUA'];
+$jenisBadge = ['peminjaman' => 'PEMINJAMAN', 'pengembalian' => 'PENGEMBALIAN', 'semua' => 'SEMUA', 'inventaris' => 'INVENTARIS'];
 $pageTitle  = 'Detail Laporan';
 $basePath   = '../../';
 $pageCss    = ['assets/css/laporan.css'];
@@ -348,7 +376,7 @@ elseif ($jenis === 'pengembalian'): ?>
 <?php // ================================================================
       // TAMPILAN JENIS: SEMUA (Peminjaman + Pengembalian, dikelompokkan)
       // ================================================================
-else: ?>
+elseif ($jenis === 'semua'): ?>
 
 <div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
     <h6 style="font-weight:700;color:#1e1e2d;margin:0">
@@ -449,8 +477,11 @@ else: ?>
             <td class="text-center">
                 <span style="background:#1a7a4a;color:#fff;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:700;white-space:nowrap">KEMBALI</span>
             </td>
-            <td style="color:#6b7280">—</td>
-            <td style="color:#6b7280">—</td>
+            <td>
+                <div style="font-weight:700;color:#1e1e2d"><?= htmlspecialchars($pp['nama_peminjam']) ?></div>
+                <div style="font-size:.7rem;color:#6b7280"><?= htmlspecialchars($pp['email_peminjam']) ?></div>
+            </td>
+            <td style="font-size:.83rem"><?= htmlspecialchars($pp['keperluan']) ?></td>
             <td><?= $barangKembaliHtml ?></td>
             <td style="white-space:nowrap">
                 <div><i class="fa-solid fa-arrow-right-to-bracket me-1" style="color:#1a7a4a;font-size:.7rem"></i><strong><?= date('d M Y', strtotime($pen['tgl_kembali_aktual'])) ?></strong></div>
@@ -479,6 +510,136 @@ else: ?>
         </tr>
         <?php endif; ?>
 
+        <?php endforeach; endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<?php endif; ?>
+
+<?php // ================================================================
+      // TAMPILAN JENIS: INVENTARIS
+      // ================================================================
+if ($jenis === 'inventaris'):
+    $bermasalah = array_filter($dataInventaris, fn($r) =>
+        $r['kondisi'] !== 'baik' || $r['status'] === 'dalam_perbaikan'
+    );
+?>
+
+<?php if (!empty($bermasalah)): ?>
+<!-- Kartu Perlu Perhatian -->
+<div style="background:#fff5f5;border:1.5px solid #fecaca;border-radius:10px;padding:18px;margin-bottom:22px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <i class="fa-solid fa-triangle-exclamation" style="color:#a33c44;font-size:1rem"></i>
+        <h6 style="font-weight:700;color:#a33c44;margin:0">Barang Perlu Perhatian
+            <span style="background:#a33c44;color:#fff;font-size:.7rem;padding:2px 8px;border-radius:20px;margin-left:6px"><?= count($bermasalah) ?> item</span>
+        </h6>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+    <?php foreach ($bermasalah as $bm):
+        $bmKondisiLabel = ['baik'=>'Baik','rusak_ringan'=>'Rusak Ringan','rusak_berat'=>'Rusak Berat'][$bm['kondisi']] ?? $bm['kondisi'];
+        $bmKondisiColor = ['baik'=>'#1a7a4a','rusak_ringan'=>'#9c7e2f','rusak_berat'=>'#a33c44'][$bm['kondisi']] ?? '#6c757d';
+        $bmStatusLabel  = ['tersedia'=>'Tersedia','dipinjam'=>'Dipinjam','dalam_perbaikan'=>'Dalam Perbaikan'][$bm['status']] ?? $bm['status'];
+        $bmStatusColor  = ['tersedia'=>'#1a7a4a','dipinjam'=>'#4361ee','dalam_perbaikan'=>'#a33c44'][$bm['status']] ?? '#6c757d';
+    ?>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+            <i class="fa-solid fa-box" style="color:#aaa;font-size:.85rem"></i>
+            <div>
+                <div style="font-weight:700;color:#1e1e2d;font-size:.88rem"><?= htmlspecialchars($bm['nama']) ?></div>
+                <div style="font-size:.72rem;color:#6b7280"><?= htmlspecialchars($bm['kode_barang']) ?> &middot; <?= htmlspecialchars($bm['nama_kategori'] ?? '—') ?></div>
+            </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <span style="background:#fff8ed;color:<?= $bmKondisiColor ?>;border:1px solid <?= $bmKondisiColor ?>55;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">
+                Kondisi: <?= $bmKondisiLabel ?>
+            </span>
+            <?php if ($bm['status'] === 'dalam_perbaikan'): ?>
+            <span style="background:#fff5f5;color:#a33c44;border:1px solid #fecaca;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700">
+                <?= $bmStatusLabel ?>
+            </span>
+            <?php endif; ?>
+            <span style="color:#6b7280;font-size:.78rem">Stok: <strong><?= $bm['stok_tersedia'] ?>/<?= $bm['stok_total'] ?></strong></span>
+        </div>
+    </div>
+    <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- Tabel Lengkap -->
+<div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+    <h6 style="font-weight:700;color:#1e1e2d;margin:0">
+        <i class="fa-solid fa-boxes-stacked me-1 text-secondary"></i> Rekap Seluruh Barang
+    </h6>
+    <small style="color:#6b7280"><?= count($dataInventaris) ?> barang &mdash; periode <?= date('d M Y', strtotime($awal)) ?> s/d <?= date('d M Y', strtotime($akhir)) ?></small>
+</div>
+
+<div class="table-card">
+    <table class="table table-borderless" style="font-size:.82rem">
+        <thead><tr>
+            <th width="4%"  class="text-center">NO</th>
+            <th width="10%">KODE</th>
+            <th width="20%">NAMA BARANG</th>
+            <th width="12%">KATEGORI</th>
+            <th width="13%">STOK</th>
+            <th width="12%">KONDISI</th>
+            <th width="12%">STATUS</th>
+            <th width="17%" class="text-center">DIPINJAM (PERIODE)</th>
+        </tr></thead>
+        <tbody>
+        <?php if (empty($dataInventaris)): ?>
+            <tr class="empty-row"><td colspan="8"><i class="fa-solid fa-folder-open fa-2x mb-2 d-block"></i>Tidak ada data barang.</td></tr>
+        <?php else: foreach ($dataInventaris as $i => $row):
+            $adaMasalah   = $row['kondisi'] !== 'baik' || $row['status'] === 'dalam_perbaikan';
+            $kondisiColor = ['baik'=>'#1a7a4a','rusak_ringan'=>'#9c7e2f','rusak_berat'=>'#a33c44'][$row['kondisi']] ?? '#6c757d';
+            $kondisiBg    = ['baik'=>'#f0f9f4','rusak_ringan'=>'#fff8ed','rusak_berat'=>'#fff5f5'][$row['kondisi']] ?? '#f3f4f6';
+            $kondisiLabel = ['baik'=>'Baik','rusak_ringan'=>'Rusak Ringan','rusak_berat'=>'Rusak Berat'][$row['kondisi']] ?? $row['kondisi'];
+            $statusColor  = ['tersedia'=>'#1a7a4a','dipinjam'=>'#4361ee','dalam_perbaikan'=>'#a33c44'][$row['status']] ?? '#6c757d';
+            $statusBg     = ['tersedia'=>'#f0f9f4','dipinjam'=>'#eef2ff','dalam_perbaikan'=>'#fff5f5'][$row['status']] ?? '#f3f4f6';
+            $statusLabel  = ['tersedia'=>'Tersedia','dipinjam'=>'Dipinjam','dalam_perbaikan'=>'Dalam Perbaikan'][$row['status']] ?? $row['status'];
+            $stokPersen   = $row['stok_total'] > 0 ? round(($row['stok_tersedia'] / $row['stok_total']) * 100) : 0;
+            $stokColor    = $stokPersen >= 70 ? '#1a7a4a' : ($stokPersen >= 30 ? '#9c7e2f' : '#a33c44');
+            $freq         = (int)$row['dipinjam_periode'];
+            $rowBg        = $adaMasalah ? 'background:#fffbf0;border-left:3px solid #f59e0b' : '';
+        ?>
+        <tr style="<?= $rowBg ?>">
+            <td class="text-center"><?= $i+1 ?></td>
+            <td style="font-family:monospace;font-weight:700;color:#4361ee;font-size:.78rem"><?= htmlspecialchars($row['kode_barang']) ?></td>
+            <td>
+                <div style="font-weight:700;color:#1e1e2d"><?= htmlspecialchars($row['nama']) ?></div>
+                <?php if ($adaMasalah): ?>
+                <div style="font-size:.7rem;color:#a33c44;margin-top:2px"><i class="fa-solid fa-circle-exclamation me-1"></i>Perlu perhatian</div>
+                <?php endif; ?>
+            </td>
+            <td style="color:#6b7280"><?= htmlspecialchars($row['nama_kategori'] ?? '—') ?></td>
+            <td>
+                <div style="margin-bottom:4px">
+                    <strong style="color:<?= $stokColor ?>"><?= $row['stok_tersedia'] ?></strong>
+                    <span style="color:#6b7280"> / <?= $row['stok_total'] ?> unit</span>
+                </div>
+                <div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden">
+                    <div style="background:<?= $stokColor ?>;height:100%;width:<?= $stokPersen ?>%"></div>
+                </div>
+            </td>
+            <td>
+                <span style="background:<?= $kondisiBg ?>;color:<?= $kondisiColor ?>;border:1px solid <?= $kondisiColor ?>40;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;white-space:nowrap">
+                    <?= $kondisiLabel ?>
+                </span>
+            </td>
+            <td>
+                <span style="background:<?= $statusBg ?>;color:<?= $statusColor ?>;border:1px solid <?= $statusColor ?>40;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;white-space:nowrap">
+                    <?= $statusLabel ?>
+                </span>
+            </td>
+            <td class="text-center">
+                <?php if ($freq > 0): ?>
+                <span style="font-size:1.1rem;font-weight:800;color:#4361ee"><?= $freq ?>x</span>
+                <?php else: ?>
+                <span style="color:#aaa;font-size:.8rem">—</span>
+                <?php endif; ?>
+            </td>
+        </tr>
         <?php endforeach; endif; ?>
         </tbody>
     </table>
