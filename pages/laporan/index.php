@@ -61,7 +61,80 @@ foreach ($dataPengajuan as &$row) {
 unset($row);
 
 // =========================================================================
-// DATA TAB 2: ARSIP LAPORAN
+// DATA TAB 2: PENGEMBALIAN
+// =========================================================================
+$fp_mulai   = $_GET['pen_mulai']   ?? '';
+$fp_akhir   = $_GET['pen_akhir']   ?? '';
+$fp_kondisi = $_GET['pen_kondisi'] ?? '';
+$fp_cari    = trim($_GET['pen_cari'] ?? '');
+
+$whereP  = [];
+$paramsP = [];
+if ($fp_mulai)   { $whereP[] = 'pen.tanggal_kembali >= :pen_mulai';       $paramsP[':pen_mulai']   = $fp_mulai; }
+if ($fp_akhir)   { $whereP[] = 'pen.tanggal_kembali <= :pen_akhir';       $paramsP[':pen_akhir']   = $fp_akhir; }
+if ($fp_kondisi) { $whereP[] = 'pen.kondisi_kembali = :pen_kondisi';      $paramsP[':pen_kondisi'] = $fp_kondisi; }
+if ($fp_cari)    { $whereP[] = 'u_p.nama_lengkap LIKE :pen_cari';         $paramsP[':pen_cari']    = '%' . $fp_cari . '%'; }
+
+$whereSqlP = $whereP ? 'WHERE ' . implode(' AND ', $whereP) : '';
+
+$stmtPen = $pdo->prepare("
+    SELECT pen.id, pen.tanggal_kembali, pen.hari_terlambat,
+           pen.kondisi_kembali, pen.catatan_kerusakan, pen.dibuat_pada,
+           pp.keperluan, pp.tanggal_pinjam, pp.tanggal_kembali AS rencana_kembali,
+           u_p.nama_lengkap AS nama_peminjam,
+           u_p.email        AS email_peminjam,
+           u_t.nama_lengkap AS nama_penerima,
+           GROUP_CONCAT(b.nama    ORDER BY b.nama SEPARATOR '||') AS nama_barang_list,
+           GROUP_CONCAT(dp.jumlah ORDER BY b.nama SEPARATOR '||') AS jumlah_list
+    FROM pengembalian pen
+    JOIN pengajuan_peminjaman pp ON pp.id = pen.id_peminjaman
+    JOIN users u_p ON u_p.id = pp.id_peminjam
+    JOIN users u_t ON u_t.id = pen.diterima_oleh
+    LEFT JOIN detail_peminjaman dp ON dp.id_peminjaman = pp.id
+    LEFT JOIN barang b ON b.id = dp.id_barang
+    $whereSqlP
+    GROUP BY pen.id
+    ORDER BY pen.tanggal_kembali DESC
+");
+$stmtPen->execute($paramsP);
+$dataPengembalian = $stmtPen->fetchAll();
+
+// =========================================================================
+// DATA TAB 3: BARANG
+// =========================================================================
+$fb_kondisi = $_GET['brg_kondisi'] ?? '';
+$fb_status  = $_GET['brg_status']  ?? '';
+$fb_cari    = trim($_GET['brg_cari'] ?? '');
+
+$whereB  = ['1=1'];
+$paramsB = [];
+if ($fb_kondisi) { $whereB[] = 'b.kondisi = :brg_kondisi'; $paramsB[':brg_kondisi'] = $fb_kondisi; }
+if ($fb_status)  { $whereB[] = 'b.status  = :brg_status';  $paramsB[':brg_status']  = $fb_status; }
+if ($fb_cari)    { $whereB[] = '(b.nama LIKE :brg_cari OR b.kode_barang LIKE :brg_cari2)';
+                   $paramsB[':brg_cari']  = '%'.$fb_cari.'%';
+                   $paramsB[':brg_cari2'] = '%'.$fb_cari.'%'; }
+
+$whereSqlB = implode(' AND ', $whereB);
+
+$stmtB = $pdo->prepare("
+    SELECT b.id, b.kode_barang, b.nama, b.stok_total, b.stok_tersedia,
+           b.kondisi, b.status, b.dibuat_pada,
+           k.nama AS nama_kategori,
+           COUNT(DISTINCT dp.id_peminjaman) AS total_dipinjam
+    FROM barang b
+    LEFT JOIN kategori k ON k.id = b.kategori_id
+    LEFT JOIN detail_peminjaman dp ON dp.id_barang = b.id
+    WHERE $whereSqlB
+    GROUP BY b.id
+    ORDER BY b.nama ASC
+");
+$stmtB->execute($paramsB);
+$dataBarang = $stmtB->fetchAll();
+
+$kategoriList = $pdo->query("SELECT id, nama FROM kategori ORDER BY nama ASC")->fetchAll();
+
+// =========================================================================
+// DATA TAB 4: ARSIP LAPORAN
 // =========================================================================
 $stmtL = $pdo->query("
     SELECT l.*, u.nama_lengkap AS nama_pembuat
@@ -106,6 +179,26 @@ require_once $basePath . 'includes/sidebar.php';
            href="?tab=pengajuan"
            style="font-weight:600;font-size:.88rem;color:<?= $tab==='pengajuan' ? '#1e1e2d' : '#6b7280' ?>">
             <i class="fa-solid fa-list-check me-1"></i> Data Pengajuan
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link <?= $tab === 'pengembalian' ? 'active fw-700' : '' ?>"
+           href="?tab=pengembalian"
+           style="font-weight:600;font-size:.88rem;color:<?= $tab==='pengembalian' ? '#1e1e2d' : '#6b7280' ?>">
+            <i class="fa-solid fa-rotate-left me-1"></i> Data Pengembalian
+            <?php if (count($dataPengembalian)): ?>
+            <span class="badge rounded-pill ms-1"
+                  style="background:#1a7a4a;color:#fff;font-size:.7rem"><?= count($dataPengembalian) ?></span>
+            <?php endif; ?>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link <?= $tab === 'barang' ? 'active fw-700' : '' ?>"
+           href="?tab=barang"
+           style="font-weight:600;font-size:.88rem;color:<?= $tab==='barang' ? '#1e1e2d' : '#6b7280' ?>">
+            <i class="fa-solid fa-boxes-stacked me-1"></i> Data Barang
+            <span class="badge rounded-pill ms-1"
+                  style="background:#4361ee;color:#fff;font-size:.7rem"><?= count($dataBarang) ?></span>
         </a>
     </li>
     <li class="nav-item">
@@ -256,7 +349,274 @@ require_once $basePath . 'includes/sidebar.php';
 </div>
 
 <!-- ===================================================================
-     TAB 2: ARSIP LAPORAN (CRUD)
+     TAB 2: DATA PENGEMBALIAN (Read-only, auto dari DB)
+=================================================================== -->
+<div id="tabPengembalian" <?= $tab !== 'pengembalian' ? 'style="display:none"' : '' ?>>
+
+    <!-- Summary Badges -->
+    <?php
+    $pen_baik    = count(array_filter($dataPengembalian, fn($r) => $r['kondisi_kembali'] === 'baik'));
+    $pen_ringan  = count(array_filter($dataPengembalian, fn($r) => $r['kondisi_kembali'] === 'rusak_ringan'));
+    $pen_berat   = count(array_filter($dataPengembalian, fn($r) => $r['kondisi_kembali'] === 'rusak_berat'));
+    $pen_lambat  = count(array_filter($dataPengembalian, fn($r) => (int)$r['hari_terlambat'] > 0));
+    ?>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <span style="background:#f0f9f4;color:#1a7a4a;border:1px solid #bbf7d0;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700"><?= $pen_baik ?> Kondisi Baik</span>
+        <span style="background:#fff8ed;color:#9c7e2f;border:1px solid #fde68a;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700"><?= $pen_ringan ?> Rusak Ringan</span>
+        <span style="background:#fff5f5;color:#a33c44;border:1px solid #fecaca;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700"><?= $pen_berat ?> Rusak Berat</span>
+        <span style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700"><?= $pen_lambat ?> Terlambat</span>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-card">
+        <form method="GET">
+            <input type="hidden" name="tab" value="pengembalian">
+            <div class="row g-3 align-items-end">
+                <div class="col-6 col-md-2">
+                    <label>Dari Tanggal</label>
+                    <input type="date" class="form-control" name="pen_mulai" value="<?= htmlspecialchars($fp_mulai) ?>">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label>Sampai Tanggal</label>
+                    <input type="date" class="form-control" name="pen_akhir" value="<?= htmlspecialchars($fp_akhir) ?>">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label>Kondisi</label>
+                    <select class="form-select" name="pen_kondisi">
+                        <option value="">Semua Kondisi</option>
+                        <option value="baik"        <?= $fp_kondisi==='baik'         ? 'selected':'' ?>>Baik</option>
+                        <option value="rusak_ringan" <?= $fp_kondisi==='rusak_ringan' ? 'selected':'' ?>>Rusak Ringan</option>
+                        <option value="rusak_berat"  <?= $fp_kondisi==='rusak_berat'  ? 'selected':'' ?>>Rusak Berat</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label>Cari Peminjam</label>
+                    <input type="text" class="form-control" name="pen_cari" value="<?= htmlspecialchars($fp_cari) ?>" placeholder="Nama peminjam...">
+                </div>
+                <div class="col-6 col-md-2">
+                    <button type="submit" class="btn-simpan-laporan">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Cari
+                    </button>
+                </div>
+                <?php if ($fp_mulai || $fp_akhir || $fp_kondisi || $fp_cari): ?>
+                <div class="col-auto" style="display:flex;align-items:flex-end">
+                    <a href="?tab=pengembalian" style="color:#ccc;font-size:.8rem;text-decoration:none;margin-top:22px">&#x2715; Reset</a>
+                </div>
+                <?php endif; ?>
+            </div>
+        </form>
+    </div>
+
+    <div style="margin-bottom:10px">
+        <small style="color:#6b7280">Menampilkan <strong><?= count($dataPengembalian) ?></strong> data pengembalian</small>
+    </div>
+
+    <div class="table-card">
+        <table class="table table-borderless">
+            <thead>
+                <tr>
+                    <th width="4%"  class="text-center">NO</th>
+                    <th width="14%">PEMINJAM</th>
+                    <th width="15%">KEPERLUAN</th>
+                    <th width="20%">BARANG DIKEMBALIKAN</th>
+                    <th width="12%">TGL KEMBALI</th>
+                    <th width="9%"  class="text-center">TERLAMBAT</th>
+                    <th width="11%">KONDISI</th>
+                    <th width="10%">DITERIMA OLEH</th>
+                    <th width="5%"  class="text-center">AKSI</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($dataPengembalian)): ?>
+                    <tr class="empty-row"><td colspan="9">
+                        <i class="fa-solid fa-folder-open fa-2x mb-2 d-block"></i>
+                        Belum ada data pengembalian<?= ($fp_mulai||$fp_akhir||$fp_kondisi||$fp_cari) ? ' sesuai filter.' : '.' ?>
+                    </td></tr>
+                <?php else: foreach ($dataPengembalian as $i => $row):
+                    $namaArr   = $row['nama_barang_list'] ? explode('||', $row['nama_barang_list']) : [];
+                    $jumlahArr = $row['jumlah_list']      ? explode('||', $row['jumlah_list'])      : [];
+                    $bagian = [];
+                    foreach ($namaArr as $k => $nb) $bagian[] = htmlspecialchars($nb).' <span style="color:#555">x'.((int)($jumlahArr[$k]??1)).'</span>';
+                    $barangHtml = $bagian ? implode(', ', $bagian) : '<span style="color:#aaa">—</span>';
+                    $kondisiColor = ['baik'=>'#1a7a4a','rusak_ringan'=>'#9c7e2f','rusak_berat'=>'#a33c44'][$row['kondisi_kembali']] ?? '#6c757d';
+                    $kondisiBg    = ['baik'=>'#f0f9f4','rusak_ringan'=>'#fff8ed','rusak_berat'=>'#fff5f5'][$row['kondisi_kembali']] ?? '#f3f4f6';
+                    $kondisiLabel = ['baik'=>'Baik','rusak_ringan'=>'Rusak Ringan','rusak_berat'=>'Rusak Berat'][$row['kondisi_kembali']] ?? $row['kondisi_kembali'];
+                ?>
+                <tr>
+                    <td class="text-center"><?= $i+1 ?></td>
+                    <td>
+                        <div style="font-weight:700;color:#1e1e2d"><?= htmlspecialchars($row['nama_peminjam']) ?></div>
+                        <div style="font-size:.72rem;color:#6b7280"><?= htmlspecialchars($row['email_peminjam']) ?></div>
+                    </td>
+                    <td style="font-size:.83rem"><?= htmlspecialchars($row['keperluan']) ?></td>
+                    <td style="font-size:.78rem;line-height:1.6"><?= $barangHtml ?></td>
+                    <td style="font-size:.78rem;white-space:nowrap">
+                        <strong><?= date('d M Y', strtotime($row['tanggal_kembali'])) ?></strong><br>
+                        <span style="color:#6b7280">Rencana: <?= date('d M Y', strtotime($row['rencana_kembali'])) ?></span>
+                    </td>
+                    <td class="text-center">
+                        <?php $h = (int)$row['hari_terlambat']; ?>
+                        <?php if ($h > 0): ?>
+                        <span style="background:#fee2e2;color:#a33c44;padding:3px 8px;border-radius:20px;font-size:.7rem;font-weight:700"><?= $h ?> hari</span>
+                        <?php else: ?>
+                        <span style="background:#f0f9f4;color:#1a7a4a;padding:3px 8px;border-radius:20px;font-size:.7rem;font-weight:700">Tepat</span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <span style="background:<?= $kondisiBg ?>;color:<?= $kondisiColor ?>;border:1px solid <?= $kondisiColor ?>40;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;white-space:nowrap">
+                            <?= $kondisiLabel ?>
+                        </span>
+                    </td>
+                    <td style="font-size:.78rem"><?= htmlspecialchars($row['nama_penerima']) ?></td>
+                    <td class="text-center">
+                        <button class="btn-act btn-detail"
+                            onclick='bukaDetailPengembalian(<?= htmlspecialchars(json_encode($row, JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES) ?>)'>
+                            Detail
+                        </button>
+                    </td>
+                </tr>
+                <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===================================================================
+     TAB 3: DATA BARANG (Read-only, rekap inventaris)
+=================================================================== -->
+<div id="tabBarang" <?= $tab !== 'barang' ? 'style="display:none"' : '' ?>>
+
+    <!-- Summary Badges -->
+    <?php
+    $brg_tersedia   = count(array_filter($dataBarang, fn($r) => $r['status'] === 'tersedia'));
+    $brg_dipinjam   = count(array_filter($dataBarang, fn($r) => $r['status'] === 'dipinjam'));
+    $brg_perbaikan  = count(array_filter($dataBarang, fn($r) => $r['status'] === 'dalam_perbaikan'));
+    $brg_baik       = count(array_filter($dataBarang, fn($r) => $r['kondisi'] === 'baik'));
+    $brg_rusak      = count(array_filter($dataBarang, fn($r) => in_array($r['kondisi'], ['rusak_ringan','rusak_berat'])));
+    ?>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <span style="background:#f0f9f4;color:#1a7a4a;border:1px solid #bbf7d0;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700"><?= $brg_tersedia ?> Tersedia</span>
+        <span style="background:#eef2ff;color:#4361ee;border:1px solid #c7d2fe;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700"><?= $brg_dipinjam ?> Sedang Dipinjam</span>
+        <span style="background:#fff5f5;color:#a33c44;border:1px solid #fecaca;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700"><?= $brg_perbaikan ?> Dalam Perbaikan</span>
+        <span style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:6px;padding:5px 12px;font-size:.78rem;font-weight:700"><?= $brg_baik ?> Kondisi Baik &nbsp;|&nbsp; <?= $brg_rusak ?> Rusak</span>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-card">
+        <form method="GET">
+            <input type="hidden" name="tab" value="barang">
+            <div class="row g-3 align-items-end">
+                <div class="col-6 col-md-3">
+                    <label>Cari Barang</label>
+                    <input type="text" class="form-control" name="brg_cari" value="<?= htmlspecialchars($fb_cari) ?>" placeholder="Nama atau kode barang...">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label>Kondisi</label>
+                    <select class="form-select" name="brg_kondisi">
+                        <option value="">Semua Kondisi</option>
+                        <option value="baik"         <?= $fb_kondisi==='baik'         ? 'selected':'' ?>>Baik</option>
+                        <option value="rusak_ringan"  <?= $fb_kondisi==='rusak_ringan'  ? 'selected':'' ?>>Rusak Ringan</option>
+                        <option value="rusak_berat"   <?= $fb_kondisi==='rusak_berat'   ? 'selected':'' ?>>Rusak Berat</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label>Status</label>
+                    <select class="form-select" name="brg_status">
+                        <option value="">Semua Status</option>
+                        <option value="tersedia"       <?= $fb_status==='tersedia'       ? 'selected':'' ?>>Tersedia</option>
+                        <option value="dipinjam"       <?= $fb_status==='dipinjam'       ? 'selected':'' ?>>Dipinjam</option>
+                        <option value="dalam_perbaikan"<?= $fb_status==='dalam_perbaikan'? 'selected':'' ?>>Dalam Perbaikan</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <button type="submit" class="btn-simpan-laporan">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Cari
+                    </button>
+                </div>
+                <?php if ($fb_kondisi || $fb_status || $fb_cari): ?>
+                <div class="col-auto" style="display:flex;align-items:flex-end">
+                    <a href="?tab=barang" style="color:#ccc;font-size:.8rem;text-decoration:none;margin-top:22px">&#x2715; Reset</a>
+                </div>
+                <?php endif; ?>
+            </div>
+        </form>
+    </div>
+
+    <div style="margin-bottom:10px">
+        <small style="color:#6b7280">Menampilkan <strong><?= count($dataBarang) ?></strong> barang</small>
+    </div>
+
+    <div class="table-card">
+        <table class="table table-borderless">
+            <thead>
+                <tr>
+                    <th width="4%"  class="text-center">NO</th>
+                    <th width="10%">KODE</th>
+                    <th width="22%">NAMA BARANG</th>
+                    <th width="13%">KATEGORI</th>
+                    <th width="13%">STOK</th>
+                    <th width="13%">KONDISI</th>
+                    <th width="13%">STATUS</th>
+                    <th width="12%" class="text-center">TOTAL DIPINJAM</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($dataBarang)): ?>
+                    <tr class="empty-row"><td colspan="8">
+                        <i class="fa-solid fa-folder-open fa-2x mb-2 d-block"></i>
+                        Belum ada data barang<?= ($fb_kondisi||$fb_status||$fb_cari) ? ' sesuai filter.' : '.' ?>
+                    </td></tr>
+                <?php else: foreach ($dataBarang as $i => $row):
+                    $kondisiColor = ['baik'=>'#1a7a4a','rusak_ringan'=>'#9c7e2f','rusak_berat'=>'#a33c44'][$row['kondisi']] ?? '#6c757d';
+                    $kondisiBg    = ['baik'=>'#f0f9f4','rusak_ringan'=>'#fff8ed','rusak_berat'=>'#fff5f5'][$row['kondisi']] ?? '#f3f4f6';
+                    $kondisiLabel = ['baik'=>'Baik','rusak_ringan'=>'Rusak Ringan','rusak_berat'=>'Rusak Berat'][$row['kondisi']] ?? $row['kondisi'];
+                    $statusColor  = ['tersedia'=>'#1a7a4a','dipinjam'=>'#4361ee','dalam_perbaikan'=>'#a33c44'][$row['status']] ?? '#6c757d';
+                    $statusBg     = ['tersedia'=>'#f0f9f4','dipinjam'=>'#eef2ff','dalam_perbaikan'=>'#fff5f5'][$row['status']] ?? '#f3f4f6';
+                    $statusLabel  = ['tersedia'=>'Tersedia','dipinjam'=>'Dipinjam','dalam_perbaikan'=>'Dalam Perbaikan'][$row['status']] ?? $row['status'];
+                    $stokPersen   = $row['stok_total'] > 0 ? round(($row['stok_tersedia'] / $row['stok_total']) * 100) : 0;
+                    $stokColor    = $stokPersen >= 70 ? '#1a7a4a' : ($stokPersen >= 30 ? '#9c7e2f' : '#a33c44');
+                ?>
+                <tr>
+                    <td class="text-center"><?= $i+1 ?></td>
+                    <td style="font-size:.78rem;font-family:monospace;font-weight:700;color:#4361ee"><?= htmlspecialchars($row['kode_barang']) ?></td>
+                    <td>
+                        <div style="font-weight:700;color:#1e1e2d"><?= htmlspecialchars($row['nama']) ?></div>
+                        <div style="font-size:.72rem;color:#6b7280">Ditambahkan <?= date('d M Y', strtotime($row['dibuat_pada'])) ?></div>
+                    </td>
+                    <td style="font-size:.83rem"><?= htmlspecialchars($row['nama_kategori'] ?? '—') ?></td>
+                    <td>
+                        <div style="font-size:.82rem;margin-bottom:4px">
+                            <strong style="color:<?= $stokColor ?>"><?= $row['stok_tersedia'] ?></strong>
+                            <span style="color:#6b7280"> / <?= $row['stok_total'] ?> unit</span>
+                        </div>
+                        <div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden">
+                            <div style="background:<?= $stokColor ?>;height:100%;width:<?= $stokPersen ?>%"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <span style="background:<?= $kondisiBg ?>;color:<?= $kondisiColor ?>;border:1px solid <?= $kondisiColor ?>40;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;white-space:nowrap">
+                            <?= $kondisiLabel ?>
+                        </span>
+                    </td>
+                    <td>
+                        <span style="background:<?= $statusBg ?>;color:<?= $statusColor ?>;border:1px solid <?= $statusColor ?>40;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;white-space:nowrap">
+                            <?= $statusLabel ?>
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <span style="font-size:1rem;font-weight:700;color:<?= $row['total_dipinjam'] > 0 ? '#4361ee' : '#aaa' ?>">
+                            <?= (int)$row['total_dipinjam'] ?>x
+                        </span>
+                    </td>
+                </tr>
+                <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===================================================================
+     TAB 4: ARSIP LAPORAN (CRUD)
 =================================================================== -->
 <div id="tabArsip" <?= $tab !== 'arsip' ? 'style="display:none"' : '' ?>>
 
@@ -348,6 +708,24 @@ require_once $basePath . 'includes/sidebar.php';
 </div>
 
 <!-- ================================================================
+     MODAL DETAIL PENGEMBALIAN (Tab 2)
+================================================================ -->
+<div class="modal fade" id="modalDetailPengembalian" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-header-dark">
+                <h5 class="modal-title"><i class="fa-solid fa-rotate-left me-2"></i>Detail Pengembalian</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="bodyDetailPengembalian"></div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================
      MODAL TAMBAH LAPORAN (Create)
 ================================================================ -->
 <div class="modal fade" id="modalTambah" tabindex="-1" aria-hidden="true">
@@ -371,6 +749,7 @@ require_once $basePath . 'includes/sidebar.php';
                             <option value="peminjaman">Peminjaman — rekap pengajuan &amp; barang dipinjam</option>
                             <option value="pengembalian">Pengembalian — rekap barang dikembalikan &amp; kondisinya</option>
                             <option value="semua">Semua — peminjaman + pengembalian dalam satu laporan</option>
+                            <option value="inventaris">Inventaris — kondisi &amp; frekuensi pemakaian barang</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -427,6 +806,7 @@ require_once $basePath . 'includes/sidebar.php';
                             <option value="peminjaman">Peminjaman</option>
                             <option value="pengembalian">Pengembalian</option>
                             <option value="semua">Semua (Peminjaman + Pengembalian)</option>
+                            <option value="inventaris">Inventaris</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -533,7 +913,55 @@ function bukaDetailPengajuan(row) {
     new bootstrap.Modal(document.getElementById('modalDetailPengajuan')).show();
 }
 
-// ---- Edit Laporan (Tab 2) ----
+// ---- Detail Pengembalian (Tab 2) ----
+function bukaDetailPengembalian(row) {
+    var namaArr   = row.nama_barang_list ? row.nama_barang_list.split('||') : [];
+    var jumlahArr = row.jumlah_list      ? row.jumlah_list.split('||')      : [];
+    var barangRows = '';
+    for (var k = 0; k < namaArr.length; k++) {
+        barangRows += '<tr style="border-bottom:1px solid #f0f0f0"><td style="padding:6px 0">'
+            + namaArr[k] + '</td><td style="padding:6px 0;text-align:center;font-weight:700">'
+            + (jumlahArr[k]||'1') + '</td></tr>';
+    }
+    if (!barangRows) barangRows = '<tr><td colspan="2" style="text-align:center;color:#aaa;padding:10px 0">Tidak ada data</td></tr>';
+
+    var kondisiMap = {baik:'Baik', rusak_ringan:'Rusak Ringan', rusak_berat:'Rusak Berat'};
+    var kondisiColorMap = {baik:'#1a7a4a', rusak_ringan:'#9c7e2f', rusak_berat:'#a33c44'};
+    var kondisiLabel = kondisiMap[row.kondisi_kembali] || row.kondisi_kembali;
+    var kondisiColor = kondisiColorMap[row.kondisi_kembali] || '#6c757d';
+    var kondisiBadge = '<span style="background:'+kondisiColor+';color:#fff;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700">'+kondisiLabel+'</span>';
+    var terlambat = parseInt(row.hari_terlambat) > 0
+        ? '<span style="background:#fee2e2;color:#a33c44;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700">'+row.hari_terlambat+' hari</span>'
+        : '<span style="background:#f0f9f4;color:#1a7a4a;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700">Tepat Waktu</span>';
+    var catatan = row.catatan_kerusakan
+        ? '<div style="background:#fff5f5;border:1px solid #fecaca;border-radius:6px;padding:10px 14px;margin-top:10px;font-size:.83rem"><strong style="color:#a33c44">Catatan Kerusakan:</strong> '+row.catatan_kerusakan+'</div>'
+        : '';
+
+    document.getElementById('bodyDetailPengembalian').innerHTML =
+        '<div class="row g-3">'
+        +'<div class="col-md-6"><div style="background:#f8f9fa;border-radius:8px;padding:16px;height:100%">'
+        +'<h6 style="font-weight:700;color:#1e1e2d;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #e9ecef"><i class="fa-solid fa-circle-info me-1 text-secondary"></i> Informasi Pengembalian</h6>'
+        +'<table style="width:100%;font-size:.85rem;border-collapse:collapse">'
+        +'<tr><td style="color:#6b7280;padding:5px 0;width:42%">Peminjam</td><td><strong>'+row.nama_peminjam+'</strong><br><small style="color:#6b7280">'+row.email_peminjam+'</small></td></tr>'
+        +'<tr><td style="color:#6b7280;padding:5px 0">Keperluan</td><td>'+row.keperluan+'</td></tr>'
+        +'<tr><td style="color:#6b7280;padding:5px 0">Tgl Pinjam</td><td>'+row.tanggal_pinjam+'</td></tr>'
+        +'<tr><td style="color:#6b7280;padding:5px 0">Rencana Kembali</td><td>'+row.rencana_kembali+'</td></tr>'
+        +'<tr><td style="color:#6b7280;padding:5px 0">Tgl Kembali Aktual</td><td><strong>'+row.tanggal_kembali+'</strong></td></tr>'
+        +'<tr><td style="color:#6b7280;padding:5px 0">Keterlambatan</td><td>'+terlambat+'</td></tr>'
+        +'<tr><td style="color:#6b7280;padding:5px 0">Kondisi Kembali</td><td>'+kondisiBadge+'</td></tr>'
+        +'<tr><td style="color:#6b7280;padding:5px 0">Diterima Oleh</td><td>'+row.nama_penerima+'</td></tr>'
+        +'</table>'+catatan+'</div></div>'
+        +'<div class="col-md-6"><div style="background:#f8f9fa;border-radius:8px;padding:16px;height:100%">'
+        +'<h6 style="font-weight:700;color:#1e1e2d;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #e9ecef"><i class="fa-solid fa-boxes-stacked me-1 text-secondary"></i> Barang Dikembalikan</h6>'
+        +'<table style="width:100%;font-size:.85rem;border-collapse:collapse">'
+        +'<thead><tr style="border-bottom:2px solid #dee2e6"><th style="padding:6px 0;color:#6b7280;font-size:.75rem;text-transform:uppercase">Nama Barang</th><th style="padding:6px 0;color:#6b7280;font-size:.75rem;text-transform:uppercase;text-align:center">Jml</th></tr></thead>'
+        +'<tbody>'+barangRows+'</tbody></table>'
+        +'</div></div></div>';
+
+    new bootstrap.Modal(document.getElementById('modalDetailPengembalian')).show();
+}
+
+// ---- Edit Laporan (Tab 3) ----
 function bukaEdit(lap) {
     document.getElementById('edit-id').value      = lap.id;
     document.getElementById('edit-judul').value   = lap.judul;
