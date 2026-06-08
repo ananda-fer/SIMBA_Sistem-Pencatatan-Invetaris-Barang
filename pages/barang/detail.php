@@ -2,15 +2,6 @@
     // CEK LOGIN DULU
     require_once '../../includes/auth_check.php';
     
-    // AKTIFKAN SESSION SEMENTARA UNTUK TESTING
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-    // PERAN SEMENTARA (Ubah ke 'admin', 'staff_tu', atau 'peminjam' untuk tes)
-    if (!isset($_SESSION['peran'])) {
-        $_SESSION['peran'] = 'admin';
-    }
-    
     // KONEKSI DATABASE
     require_once __DIR__ . '/../../config/koneksi.php';
 
