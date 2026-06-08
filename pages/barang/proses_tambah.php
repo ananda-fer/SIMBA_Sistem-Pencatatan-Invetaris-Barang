@@ -23,17 +23,20 @@
 
     // KODE BARANG OTOMATIS
     try {
-        $stmt_kategori = $pdo->prepare("SELECT kode FROM kategori WHERE id = ?");
-        $stmt_kategori->execute([$kategori_id]);
-        $kategori = $stmt_kategori->fetch();
+        $stmt_kategori = $conn->prepare("SELECT kode FROM kategori WHERE id = ?");
+        $stmt_kategori->bind_param("i", $kategori_id);
+        $stmt_kategori->execute();
+        $kategori = $stmt_kategori->get_result()->fetch_assoc();
 
         if ($kategori) {
             $kode_kategori = $kategori['kode'];
             $prefix = "FKT-" . $kode_kategori . "-";
+            $prefix_like = $prefix . '%';
 
-            $stmt_barang = $pdo->prepare("SELECT kode_barang FROM barang WHERE kode_barang LIKE ? ORDER BY kode_barang DESC LIMIT 1");
-            $stmt_barang->execute([$prefix . '%']);
-            $barang = $stmt_barang->fetch();
+            $stmt_barang = $conn->prepare("SELECT kode_barang FROM barang WHERE kode_barang LIKE ? ORDER BY kode_barang DESC LIMIT 1");
+            $stmt_barang->bind_param("s", $prefix_like);
+            $stmt_barang->execute();
+            $barang = $stmt_barang->get_result()->fetch_assoc();
 
             if ($barang) {
                 $last_code = $barang['kode_barang'];
@@ -49,7 +52,7 @@
         } else {
             $kode_barang = 'FKT-UNKNOWN-001';
         }
-    } catch (\PDOException $e) {
+    } catch (\Exception $e) {
         echo "<script>alert('Gagal membuat kode barang!'); window.location='tambah.php';</script>";
         exit;
     }
@@ -70,20 +73,12 @@
 
     // SIMPAN DATA KE DATABASE
     try {
-        $stmt = $pdo->prepare("INSERT INTO barang (kategori_id, kode_barang, nama, stok_total, stok_tersedia, kondisi, status, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([
-            $kategori_id, 
-            $kode_barang, 
-            $nama, 
-            $stok_total, 
-            $stok_tersedia, 
-            $kondisi, 
-            $status, 
-            $nama_foto
-        ]);
+        $stmt = $conn->prepare("INSERT INTO barang (kategori_id, kode_barang, nama, stok_total, stok_tersedia, kondisi, status, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issiisss", $kategori_id, $kode_barang, $nama, $stok_total, $stok_tersedia, $kondisi, $status, $nama_foto);
+        $stmt->execute();
 
         echo "<script>alert('Barang berhasil ditambahkan!'); window.location='index.php';</script>";
-    } catch (\PDOException $e) {
+    } catch (\Exception $e) {
         echo "<script>alert('Gagal menambahkan barang!'); window.location='tambah.php';</script>";
     }
 ?>

@@ -8,48 +8,48 @@ require_once __DIR__ . '/../../config/koneksi.php';
 // =========================================================================
 // QUERY: STATISTIK UTAMA
 // =========================================================================
-$totalBarang        = $pdo->query("SELECT COUNT(*) FROM barang")->fetchColumn();
-$dipinjamAktif      = $pdo->query("SELECT COUNT(*) FROM pengajuan_peminjaman WHERE status = 'aktif'")->fetchColumn();
-$menungguVerifikasi = $pdo->query("SELECT COUNT(*) FROM pengajuan_peminjaman WHERE status = 'menunggu'")->fetchColumn();
-$dalamPerbaikan     = $pdo->query("SELECT COUNT(*) FROM barang WHERE status = 'dalam_perbaikan'")->fetchColumn();
+$totalBarang        = $conn->query("SELECT COUNT(*) FROM barang")->fetch_row()[0];
+$dipinjamAktif      = $conn->query("SELECT COUNT(*) FROM pengajuan_peminjaman WHERE status = 'aktif'")->fetch_row()[0];
+$menungguVerifikasi = $conn->query("SELECT COUNT(*) FROM pengajuan_peminjaman WHERE status = 'menunggu'")->fetch_row()[0];
+$dalamPerbaikan     = $conn->query("SELECT COUNT(*) FROM barang WHERE status = 'dalam_perbaikan'")->fetch_row()[0];
 
 // =========================================================================
 // QUERY: KONDISI BARANG
 // =========================================================================
-$kondisiBaik  = $pdo->query("SELECT COUNT(*) FROM barang WHERE kondisi = 'baik'")->fetchColumn();
-$rusakRingan  = $pdo->query("SELECT COUNT(*) FROM barang WHERE kondisi = 'rusak_ringan'")->fetchColumn();
-$rusakBerat   = $pdo->query("SELECT COUNT(*) FROM barang WHERE kondisi = 'rusak_berat'")->fetchColumn();
-$totalKategori = $pdo->query("SELECT COUNT(*) FROM kategori")->fetchColumn();
+$kondisiBaik  = $conn->query("SELECT COUNT(*) FROM barang WHERE kondisi = 'baik'")->fetch_row()[0];
+$rusakRingan  = $conn->query("SELECT COUNT(*) FROM barang WHERE kondisi = 'rusak_ringan'")->fetch_row()[0];
+$rusakBerat   = $conn->query("SELECT COUNT(*) FROM barang WHERE kondisi = 'rusak_berat'")->fetch_row()[0];
+$totalKategori = $conn->query("SELECT COUNT(*) FROM kategori")->fetch_row()[0];
 
 // =========================================================================
 // QUERY: PENGAJUAN PEMINJAMAN TERBARU
 // =========================================================================
-$peminjamanTerbaru = $pdo->query("
+$peminjamanTerbaru = $conn->query("
     SELECT pp.id, u.nama_lengkap AS nama_peminjam, pp.keperluan,
            pp.tanggal_pinjam, pp.tanggal_kembali, pp.status
     FROM pengajuan_peminjaman pp
     JOIN users u ON u.id = pp.id_peminjam
     ORDER BY pp.dibuat_pada DESC
     LIMIT 5
-")->fetchAll();
+")->fetch_all(MYSQLI_ASSOC);
 
 // =========================================================================
 // QUERY: DISTRIBUSI KATEGORI
 // =========================================================================
-$distribusiKategori = $pdo->query("
+$distribusiKategori = $conn->query("
     SELECT k.nama, COUNT(b.id) AS jumlah
     FROM kategori k
     LEFT JOIN barang b ON b.kategori_id = k.id
     GROUP BY k.id, k.nama
     ORDER BY jumlah DESC
-")->fetchAll();
+")->fetch_all(MYSQLI_ASSOC);
 
 $progressColors = ['bg-purple', 'bg-green', 'bg-primary', 'bg-warning', 'bg-danger'];
 
 // =========================================================================
 // QUERY: AKTIVITAS TERKINI
 // =========================================================================
-$aktivitasTerkini = $pdo->query("
+$aktivitasTerkini = $conn->query("
     (SELECT CONCAT(u.nama_lengkap, ' mengajukan peminjaman: ', pp.keperluan) AS deskripsi,
             pp.dibuat_pada AS waktu, 'blue' AS warna
      FROM pengajuan_peminjaman pp JOIN users u ON u.id = pp.id_peminjam)
@@ -61,7 +61,7 @@ $aktivitasTerkini = $pdo->query("
      JOIN users u ON u.id = pp.id_peminjam)
     ORDER BY waktu DESC
     LIMIT 5
-")->fetchAll();
+")->fetch_all(MYSQLI_ASSOC);
 
 // =========================================================================
 // PAGE CONFIGURATION

@@ -22,15 +22,16 @@
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT b.*, k.nama as nama_kategori FROM barang b LEFT JOIN kategori k ON b.kategori_id = k.id WHERE b.id = ?");
-        $stmt->execute([$id]);
-        $barang = $stmt->fetch();
-        
+        $stmt = $conn->prepare("SELECT b.*, k.nama as nama_kategori FROM barang b LEFT JOIN kategori k ON b.kategori_id = k.id WHERE b.id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $barang = $stmt->get_result()->fetch_assoc();
+
         if (!$barang) {
             header("Location: index.php");
             exit;
         }
-    } catch (\PDOException $e) {
+    } catch (\Exception $e) {
         die("Terjadi kesalahan database: " . $e->getMessage());
     }
 

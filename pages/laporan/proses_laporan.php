@@ -64,19 +64,14 @@ if ($aksi === 'tambah') {
 
     $filePdf = uploadPdf('file_pdf');
 
-    $stmt = $pdo->prepare("
+    $stmt = $conn->prepare("
         INSERT INTO laporan (judul, jenis_laporan, periode_awal, periode_akhir, dibuat_oleh, catatan, file_pdf)
-        VALUES (:judul, :jenis, :awal, :akhir, :oleh, :catatan, :pdf)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->execute([
-        ':judul'   => $judul,
-        ':jenis'   => $jenis,
-        ':awal'    => $periodeAwal,
-        ':akhir'   => $periodeAkhr,
-        ':oleh'    => $_SESSION['user_id'],
-        ':catatan' => $catatan ?: null,
-        ':pdf'     => $filePdf,
-    ]);
+    $dibuat_oleh  = (int)$_SESSION['user_id'];
+    $catatan_val  = $catatan ?: null;
+    $stmt->bind_param("ssssiss", $judul, $jenis, $periodeAwal, $periodeAkhr, $dibuat_oleh, $catatan_val, $filePdf);
+    $stmt->execute();
 
     $_SESSION['flash_laporan'] = ['type' => 'success', 'msg' => 'Laporan "' . htmlspecialchars($judul) . '" berhasil dibuat.'];
     header('Location: index.php?tab=arsip');
@@ -101,9 +96,10 @@ if ($aksi === 'edit') {
     }
 
     // Ambil file lama
-    $existing = $pdo->prepare("SELECT file_pdf FROM laporan WHERE id = :id");
-    $existing->execute([':id' => $id]);
-    $oldRow = $existing->fetch();
+    $existing = $conn->prepare("SELECT file_pdf FROM laporan WHERE id = ?");
+    $existing->bind_param("i", $id);
+    $existing->execute();
+    $oldRow = $existing->get_result()->fetch_assoc();
     if (!$oldRow) {
         $_SESSION['flash_laporan'] = ['type' => 'danger', 'msg' => 'Laporan tidak ditemukan.'];
         header('Location: index.php?tab=arsip');
@@ -112,25 +108,19 @@ if ($aksi === 'edit') {
 
     $filePdf = uploadPdf('file_pdf', $oldRow['file_pdf']);
 
-    $stmt = $pdo->prepare("
+    $stmt = $conn->prepare("
         UPDATE laporan
-        SET judul        = :judul,
-            jenis_laporan= :jenis,
-            periode_awal = :awal,
-            periode_akhir= :akhir,
-            catatan      = :catatan,
-            file_pdf     = :pdf
-        WHERE id = :id
+        SET judul         = ?,
+            jenis_laporan = ?,
+            periode_awal  = ?,
+            periode_akhir = ?,
+            catatan       = ?,
+            file_pdf      = ?
+        WHERE id = ?
     ");
-    $stmt->execute([
-        ':judul'   => $judul,
-        ':jenis'   => $jenis,
-        ':awal'    => $periodeAwal,
-        ':akhir'   => $periodeAkhr,
-        ':catatan' => $catatan ?: null,
-        ':pdf'     => $filePdf,
-        ':id'      => $id,
-    ]);
+    $catatan_val = $catatan ?: null;
+    $stmt->bind_param("ssssssi", $judul, $jenis, $periodeAwal, $periodeAkhr, $catatan_val, $filePdf, $id);
+    $stmt->execute();
 
     $_SESSION['flash_laporan'] = ['type' => 'success', 'msg' => 'Laporan berhasil diperbarui.'];
     header('Location: index.php?tab=arsip');
@@ -148,16 +138,19 @@ if ($aksi === 'hapus') {
     }
 
     // Ambil & hapus file PDF
-    $existing = $pdo->prepare("SELECT file_pdf, judul FROM laporan WHERE id = :id");
-    $existing->execute([':id' => $id]);
-    $row = $existing->fetch();
+    $existing = $conn->prepare("SELECT file_pdf, judul FROM laporan WHERE id = ?");
+    $existing->bind_param("i", $id);
+    $existing->execute();
+    $row = $existing->get_result()->fetch_assoc();
 
     if ($row) {
         if ($row['file_pdf']) {
             $fullPath = __DIR__ . '/../../' . $row['file_pdf'];
             if (file_exists($fullPath)) @unlink($fullPath);
         }
-        $pdo->prepare("DELETE FROM laporan WHERE id = :id")->execute([':id' => $id]);
+        $stmtDel = $conn->prepare("DELETE FROM laporan WHERE id = ?");
+        $stmtDel->bind_param("i", $id);
+        $stmtDel->execute();
         $_SESSION['flash_laporan'] = ['type' => 'success', 'msg' => 'Laporan "' . htmlspecialchars($row['judul']) . '" berhasil dihapus.'];
     }
 

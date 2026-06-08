@@ -19,36 +19,44 @@
     $filter_kondisi = isset($_GET['kondisi']) ? $_GET['kondisi'] : '';
 
     $query = "SELECT b.*, k.nama as nama_kategori FROM barang b LEFT JOIN kategori k ON b.kategori_id = k.id WHERE 1=1";
-    $params = [];
+    $types = "";
+    $bindParams = [];
 
     if (!empty($search)) {
-        $query .= " AND (b.nama LIKE :search_nama OR b.kode_barang LIKE :search_kode)";
-        $params['search_nama'] = "%" . $search . "%";
-        $params['search_kode'] = "%" . $search . "%";
+        $query .= " AND (b.nama LIKE ? OR b.kode_barang LIKE ?)";
+        $types .= "ss";
+        $search_like = "%" . $search . "%";
+        $bindParams[] = $search_like;
+        $bindParams[] = $search_like;
     }
     if (!empty($filter_kat)) {
-        $query .= " AND b.kategori_id = :kategori_id";
-        $params['kategori_id'] = (int)$filter_kat;
+        $query .= " AND b.kategori_id = ?";
+        $types .= "i";
+        $filter_kat_int = (int)$filter_kat;
+        $bindParams[] = $filter_kat_int;
     }
     if (!empty($filter_kondisi)) {
-        $query .= " AND b.kondisi = :kondisi";
-        $params['kondisi'] = $filter_kondisi;
+        $query .= " AND b.kondisi = ?";
+        $types .= "s";
+        $bindParams[] = $filter_kondisi;
     }
 
     $query .= " ORDER BY b.id DESC";
 
     try {
-        $stmt = $pdo->prepare($query);
-        $stmt->execute($params);
-        $result = $stmt->fetchAll();
-    } catch (\PDOException $e) {
+        $stmt = $conn->prepare($query);
+        if ($types) {
+            $stmt->bind_param($types, ...$bindParams);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    } catch (\Exception $e) {
         $result = [];
     }
 
     try {
-        $kategori_stmt = $pdo->query("SELECT * FROM kategori");
-        $kategori_list = $kategori_stmt->fetchAll();
-    } catch (\PDOException $e) {
+        $kategori_list = $conn->query("SELECT * FROM kategori")->fetch_all(MYSQLI_ASSOC);
+    } catch (\Exception $e) {
         $kategori_list = [];
     }
 

@@ -1,5 +1,5 @@
 <?php
-// pages/peminjaman/approval.php - Staff TU verifikasi dan approval pengajuan
+// pages/peminjaman/approval.php - Staff TU approval dan penyerahan barang
 require_once __DIR__ . '/../../config/koneksi.php';
 require_once __DIR__ . '/../../includes/auth_check.php';
 require_once __DIR__ . '/../../includes/functions.php';
@@ -22,7 +22,7 @@ $stmt = $conn->prepare("
            $select_file_surat
     FROM pengajuan_peminjaman pp
     JOIN users u ON u.id = pp.id_peminjam
-    WHERE pp.id = ? AND pp.status IN ('menunggu', 'diverifikasi')
+    WHERE pp.id = ? AND pp.status IN ('menunggu', 'diverifikasi', 'disetujui')
 ");
 $stmt->bind_param('i', $id);
 $stmt->execute();
@@ -51,10 +51,10 @@ foreach ($detail_list as $d) {
 }
 
 // ----------------------
-// PROSES APPROVAL
+// PROSES APPROVAL / PENYERAHAN
 // ----------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $aksi = $_POST['aksi'] ?? '';
+$aksi = $_POST['aksi'] ?? $_GET['aksi'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' || $aksi === 'serahkan') {
 
     if ($aksi === 'setujui' && $stok_ok) {
         $conn->begin_transaction();
@@ -108,6 +108,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('index.php');
             }
         }
+    } elseif ($aksi === 'serahkan') {
+        if ($peminjaman['status'] !== 'disetujui') {
+            flash('error', 'Barang tidak dapat diserahkan. Pastikan status peminjaman sudah disetujui.');
+            redirect('index.php');
+        }
+
+        $upd = $conn->prepare("
+            UPDATE pengajuan_peminjaman
+            SET status = 'aktif',
+                diperbarui_pada = NOW()
+            WHERE id = ? AND status = 'disetujui'
+        ");
+        $upd->bind_param('i', $id);
+
+        if ($upd->execute() && $upd->affected_rows > 0) {
+            flash('success', "Barang untuk peminjaman #$id berhasil diserahkan. Status menjadi aktif.");
+        } else {
+            flash('error', 'Gagal menyerahkan barang.');
+        }
+
+        redirect('index.php');
     }
 }
 ?>
@@ -135,8 +156,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     Kembali
                 </a>
                 <div>
-                    <h2>Approval Pengajuan #<?= $id ?></h2>
-                    <p>Periksa ketersediaan barang, lalu setujui atau tolak pengajuan</p>
+                    <h2><?= $peminjaman['status'] === 'disetujui' ? 'Penyerahan Barang' : 'Approval Pengajuan' ?> #<?= $id ?></h2>
+                    <p>
+                        <?= $peminjaman['status'] === 'disetujui'
+                            ? 'Konfirmasi penyerahan barang yang sudah disetujui'
+                            : 'Periksa ketersediaan barang, lalu setujui atau tolak pengajuan' ?>
+                    </p>
                 </div>
             </div>
             <?= badge_status($peminjaman['status']) ?>
@@ -236,7 +261,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         </div>
 
-        <!-- AKSI APPROVAL -->
+        <!-- AKSI APPROVAL / PENYERAHAN -->
+        <?php if ($peminjaman['status'] === 'disetujui'): ?>
+        <div class="approval-actions">
+            <div class="approval-box approve-box">
+                <h4>Serahkan Barang</h4>
+                <p style="font-size:12.5px;color:#065f46;margin-bottom:14px;line-height:1.5">
+                    Pengajuan sudah disetujui. Setelah barang diserahkan, status peminjaman akan berubah menjadi aktif.
+                </p>
+                <form method="POST" onsubmit="return confirm('Serahkan barang dan ubah status peminjaman menjadi aktif?')">
+                    <input type="hidden" name="aksi" value="serahkan">
+                    <button type="submit" class="btn btn-approve btn-full">Serahkan Barang</button>
+                </form>
+            </div>
+        </div>
+        <?php else: ?>
         <div class="approval-actions">
 
             <!-- Setujui -->
@@ -268,6 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
         </div>
+        <?php endif; ?>
 
     </main>
 </div>
