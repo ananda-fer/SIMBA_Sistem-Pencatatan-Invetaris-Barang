@@ -198,6 +198,7 @@ require_once $basePath . 'includes/sidebar.php';
         <?php if (count($dataBarang)): ?>
         <span class="status-count"><?= count($dataBarang) ?></span>
         <?php endif; ?>
+        
     </a>
     <a href="?tab=arsip" class="status-tab <?= $tab === 'arsip' ? 'active' : '' ?>">
         Arsip Laporan
