@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $aksi === 'serahkan') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Approval Peminjaman - SIMBA</title>
-    <link rel="stylesheet" href="<?= app_url('assets/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('assets/css/style.css') ?>">
 </head>
 <body>
 

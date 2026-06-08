@@ -26,6 +26,16 @@ if (!function_exists('app_url')) {
     }
 }
 
+if (!function_exists('asset_url')) {
+    // Sama seperti app_url tapi menambahkan ?v=<filemtime> untuk cache-busting,
+    // sehingga perubahan CSS/JS langsung dimuat browser tanpa hard refresh.
+    function asset_url(string $path): string {
+        $full = dirname(__DIR__) . '/' . ltrim($path, '/');
+        $ver  = is_file($full) ? filemtime($full) : time();
+        return app_url($path) . '?v=' . $ver;
+    }
+}
+
 if (isset($_SESSION['id']) && !isset($_SESSION['user_id'])) {
     $_SESSION['user_id'] = $_SESSION['id'];
 }
