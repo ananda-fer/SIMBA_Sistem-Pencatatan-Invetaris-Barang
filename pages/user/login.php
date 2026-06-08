@@ -141,24 +141,28 @@ if (isset($_POST['login'])) {
         }
         .input-wrap .lead { left: 14px; }
         .input-wrap .toggle {
-            right: 13px;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
             pointer-events: auto;
             cursor: pointer;
             border: 0;
             background: transparent;
             padding: 0;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             display: grid;
             place-items: center;
             color: #6b7280;
         }
+
         input {
             width: 100%;
             height: 43px;
             border: 1px solid #d9e1ec;
             border-radius: 2px;
-            padding: 0 44px 0 39px;
+            padding: 0 40px 0 39px; 
             font-size: 14px;
             color: #111827;
             outline: none;
@@ -241,7 +245,10 @@ if (isset($_POST['login'])) {
                         <svg class="lead" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         <input type="password" id="password" name="password" placeholder="Enter your password" required>
                         <button class="toggle" type="button" aria-label="Show password" data-target="password">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
                         </button>
                     </div>
                 </div>

@@ -2,7 +2,7 @@
 session_start();
 
 if (isset($_SESSION['id']) || isset($_SESSION['user_id'])) {
-    header('Location: pages/peminjaman/index.php');
+    header('Location: pages/dashboard/index.php');
     exit;
 }
 

@@ -175,24 +175,28 @@ if (isset($_POST['signup'])) {
         }
         .input-wrap .lead { left: 14px; }
         .input-wrap .toggle {
-            right: 13px;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
             pointer-events: auto;
             cursor: pointer;
             border: 0;
             background: transparent;
             padding: 0;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             display: grid;
             place-items: center;
             color: #6b7280;
         }
+
         input {
             width: 100%;
             height: 43px;
             border: 1px solid #d9e1ec;
             border-radius: 2px;
-            padding: 0 44px 0 39px;
+            padding: 0 40px 0 39px; 
             font-size: 14px;
             color: #111827;
             outline: none;
