@@ -36,6 +36,11 @@
     outline: none;
 }
 
+/* Sejajarkan tombol "Cari" dengan input (kolom lain punya label di atas,
+   tombol tidak — jadi rata-bawahkan agar sejajar) */
+.filter-card .filter-row { align-items: flex-end; }
+.filter-card .filter-actions { margin-top: 0; }
+
 
 /* Data Table */
 .table-card {
