@@ -27,15 +27,16 @@ $f_status = $_GET['status'] ?? '';
 $f_cari   = trim($_GET['cari'] ?? '');
 
 $where  = [];
+$typesP = "";
 $params = [];
-if ($f_mulai)  { $where[] = 'pp.tanggal_pinjam >= :mulai';               $params[':mulai']  = $f_mulai; }
-if ($f_akhir)  { $where[] = 'pp.tanggal_pinjam <= :akhir';               $params[':akhir']  = $f_akhir; }
-if ($f_status) { $where[] = 'pp.status = :status';                       $params[':status'] = $f_status; }
-if ($f_cari)   { $where[] = 'u_peminjam.nama_lengkap LIKE :cari';        $params[':cari']   = '%' . $f_cari . '%'; }
+if ($f_mulai)  { $where[] = 'pp.tanggal_pinjam >= ?'; $typesP .= "s"; $params[] = $f_mulai; }
+if ($f_akhir)  { $where[] = 'pp.tanggal_pinjam <= ?'; $typesP .= "s"; $params[] = $f_akhir; }
+if ($f_status) { $where[] = 'pp.status = ?';          $typesP .= "s"; $params[] = $f_status; }
+if ($f_cari)   { $where[] = 'u_peminjam.nama_lengkap LIKE ?'; $typesP .= "s"; $params[] = '%' . $f_cari . '%'; }
 
 $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
-$stmtP = $pdo->prepare("
+$stmtP = $conn->prepare("
     SELECT pp.id, pp.keperluan, pp.tanggal_pinjam, pp.tanggal_kembali,
            pp.status, pp.file_surat, pp.catatan_tolak, pp.dibuat_pada, pp.diperbarui_pada,
            u_peminjam.nama_lengkap AS nama_peminjam,
@@ -52,8 +53,9 @@ $stmtP = $pdo->prepare("
     GROUP BY pp.id
     ORDER BY pp.dibuat_pada DESC
 ");
-$stmtP->execute($params);
-$dataPengajuan = $stmtP->fetchAll();
+if ($typesP) { $stmtP->bind_param($typesP, ...$params); }
+$stmtP->execute();
+$dataPengajuan = $stmtP->get_result()->fetch_all(MYSQLI_ASSOC);
 
 foreach ($dataPengajuan as &$row) {
     $row['surat_url'] = $row['file_surat'] ? app_url($row['file_surat']) : '';
@@ -69,15 +71,16 @@ $fp_kondisi = $_GET['pen_kondisi'] ?? '';
 $fp_cari    = trim($_GET['pen_cari'] ?? '');
 
 $whereP  = [];
+$typesPen = "";
 $paramsP = [];
-if ($fp_mulai)   { $whereP[] = 'pen.tanggal_kembali >= :pen_mulai';       $paramsP[':pen_mulai']   = $fp_mulai; }
-if ($fp_akhir)   { $whereP[] = 'pen.tanggal_kembali <= :pen_akhir';       $paramsP[':pen_akhir']   = $fp_akhir; }
-if ($fp_kondisi) { $whereP[] = 'pen.kondisi_kembali = :pen_kondisi';      $paramsP[':pen_kondisi'] = $fp_kondisi; }
-if ($fp_cari)    { $whereP[] = 'u_p.nama_lengkap LIKE :pen_cari';         $paramsP[':pen_cari']    = '%' . $fp_cari . '%'; }
+if ($fp_mulai)   { $whereP[] = 'pen.tanggal_kembali >= ?'; $typesPen .= "s"; $paramsP[] = $fp_mulai; }
+if ($fp_akhir)   { $whereP[] = 'pen.tanggal_kembali <= ?'; $typesPen .= "s"; $paramsP[] = $fp_akhir; }
+if ($fp_kondisi) { $whereP[] = 'pen.kondisi_kembali = ?';  $typesPen .= "s"; $paramsP[] = $fp_kondisi; }
+if ($fp_cari)    { $whereP[] = 'u_p.nama_lengkap LIKE ?';  $typesPen .= "s"; $paramsP[] = '%' . $fp_cari . '%'; }
 
 $whereSqlP = $whereP ? 'WHERE ' . implode(' AND ', $whereP) : '';
 
-$stmtPen = $pdo->prepare("
+$stmtPen = $conn->prepare("
     SELECT pen.id, pen.tanggal_kembali, pen.hari_terlambat,
            pen.kondisi_kembali, pen.catatan_kerusakan, pen.dibuat_pada,
            pp.keperluan, pp.tanggal_pinjam, pp.tanggal_kembali AS rencana_kembali,
@@ -96,8 +99,9 @@ $stmtPen = $pdo->prepare("
     GROUP BY pen.id
     ORDER BY pen.tanggal_kembali DESC
 ");
-$stmtPen->execute($paramsP);
-$dataPengembalian = $stmtPen->fetchAll();
+if ($typesPen) { $stmtPen->bind_param($typesPen, ...$paramsP); }
+$stmtPen->execute();
+$dataPengembalian = $stmtPen->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // =========================================================================
 // DATA TAB 3: BARANG
@@ -107,16 +111,19 @@ $fb_status  = $_GET['brg_status']  ?? '';
 $fb_cari    = trim($_GET['brg_cari'] ?? '');
 
 $whereB  = ['1=1'];
+$typesB  = "";
 $paramsB = [];
-if ($fb_kondisi) { $whereB[] = 'b.kondisi = :brg_kondisi'; $paramsB[':brg_kondisi'] = $fb_kondisi; }
-if ($fb_status)  { $whereB[] = 'b.status  = :brg_status';  $paramsB[':brg_status']  = $fb_status; }
-if ($fb_cari)    { $whereB[] = '(b.nama LIKE :brg_cari OR b.kode_barang LIKE :brg_cari2)';
-                   $paramsB[':brg_cari']  = '%'.$fb_cari.'%';
-                   $paramsB[':brg_cari2'] = '%'.$fb_cari.'%'; }
+if ($fb_kondisi) { $whereB[] = 'b.kondisi = ?'; $typesB .= "s"; $paramsB[] = $fb_kondisi; }
+if ($fb_status)  { $whereB[] = 'b.status  = ?'; $typesB .= "s"; $paramsB[] = $fb_status; }
+if ($fb_cari)    { $whereB[] = '(b.nama LIKE ? OR b.kode_barang LIKE ?)';
+                   $typesB .= "ss";
+                   $brg_cari_like = '%'.$fb_cari.'%';
+                   $paramsB[] = $brg_cari_like;
+                   $paramsB[] = $brg_cari_like; }
 
 $whereSqlB = implode(' AND ', $whereB);
 
-$stmtB = $pdo->prepare("
+$stmtB = $conn->prepare("
     SELECT b.id, b.kode_barang, b.nama, b.stok_total, b.stok_tersedia,
            b.kondisi, b.status, b.dibuat_pada,
            k.nama AS nama_kategori,
@@ -128,21 +135,21 @@ $stmtB = $pdo->prepare("
     GROUP BY b.id
     ORDER BY b.nama ASC
 ");
-$stmtB->execute($paramsB);
-$dataBarang = $stmtB->fetchAll();
+if ($typesB) { $stmtB->bind_param($typesB, ...$paramsB); }
+$stmtB->execute();
+$dataBarang = $stmtB->get_result()->fetch_all(MYSQLI_ASSOC);
 
-$kategoriList = $pdo->query("SELECT id, nama FROM kategori ORDER BY nama ASC")->fetchAll();
+$kategoriList = $conn->query("SELECT id, nama FROM kategori ORDER BY nama ASC")->fetch_all(MYSQLI_ASSOC);
 
 // =========================================================================
 // DATA TAB 4: ARSIP LAPORAN
 // =========================================================================
-$stmtL = $pdo->query("
+$dataLaporan = $conn->query("
     SELECT l.*, u.nama_lengkap AS nama_pembuat
     FROM laporan l
     JOIN users u ON u.id = l.dibuat_oleh
     ORDER BY l.dibuat_pada DESC
-");
-$dataLaporan = $stmtL->fetchAll();
+")->fetch_all(MYSQLI_ASSOC);
 
 // =========================================================================
 // PAGE CONFIG

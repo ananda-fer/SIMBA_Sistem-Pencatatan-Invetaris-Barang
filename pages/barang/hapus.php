@@ -16,9 +16,10 @@
     }
 
     try {
-        $stmtSelect = $pdo->prepare("SELECT foto FROM barang WHERE id = ?");
-        $stmtSelect->execute([$id]);
-        $data = $stmtSelect->fetch();
+        $stmtSelect = $conn->prepare("SELECT foto FROM barang WHERE id = ?");
+        $stmtSelect->bind_param("i", $id);
+        $stmtSelect->execute();
+        $data = $stmtSelect->get_result()->fetch_assoc();
 
         if ($data) {
             $folder_upload = "../../assets/uploads/barang/";
@@ -27,9 +28,10 @@
                 unlink($folder_upload . $data['foto']);
             }
 
-            $stmtDelete = $pdo->prepare("DELETE FROM barang WHERE id = ?");
-            
-            if ($stmtDelete->execute([$id])) {
+            $stmtDelete = $conn->prepare("DELETE FROM barang WHERE id = ?");
+            $stmtDelete->bind_param("i", $id);
+
+            if ($stmtDelete->execute()) {
                 echo "<script>alert('Barang berhasil dihapus!'); window.location='index.php';</script>";
             } else {
                 echo "<script>alert('Gagal menghapus barang!'); window.location='index.php';</script>";
@@ -37,7 +39,7 @@
         } else {
             echo "<script>alert('Data tidak ditemukan!'); window.location='index.php';</script>";
         }
-    } catch (\PDOException $e) {
+    } catch (\Exception $e) {
         echo "<script>alert('Terjadi kesalahan database: " . addslashes($e->getMessage()) . "'); window.location='index.php';</script>";
     }
 ?>

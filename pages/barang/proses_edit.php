@@ -71,23 +71,16 @@
 
         // UPDATE DATA KE DATABASE
         try {
-            $stmt = $pdo->prepare("UPDATE barang SET nama = ?, stok_total = ?, stok_tersedia = ?, kondisi = ?, status = ?, foto = ? WHERE id = ?");
-            $result = $stmt->execute([
-                $nama, 
-                $stok_total, 
-                $stok_tersedia, 
-                $kondisi, 
-                $status, 
-                $nama_foto, 
-                $id
-            ]);
+            $stmt = $conn->prepare("UPDATE barang SET nama = ?, stok_total = ?, stok_tersedia = ?, kondisi = ?, status = ?, foto = ? WHERE id = ?");
+            $stmt->bind_param("siisssi", $nama, $stok_total, $stok_tersedia, $kondisi, $status, $nama_foto, $id);
+            $result = $stmt->execute();
 
             if ($result) {
                 echo "<script>alert('Barang berhasil diperbarui!'); window.location='index.php';</script>";
             } else {
                 echo "<script>alert('Gagal memperbarui barang!'); window.location='edit.php?id=" . $id . "';</script>";
             }
-        } catch (\PDOException $e) {
+        } catch (\Exception $e) {
             echo "<script>alert('Terjadi kesalahan database: " . addslashes($e->getMessage()) . "'); window.location='edit.php?id=" . $id . "';</script>";
         }
     } else {

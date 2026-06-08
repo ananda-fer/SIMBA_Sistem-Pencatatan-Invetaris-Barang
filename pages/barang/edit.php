@@ -16,15 +16,16 @@
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT * FROM barang WHERE id = ?");
-        $stmt->execute([$id]);
-        $barang = $stmt->fetch();
-        
+        $stmt = $conn->prepare("SELECT * FROM barang WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $barang = $stmt->get_result()->fetch_assoc();
+
         if (!$barang) {
             header("Location: index.php");
             exit;
         }
-    } catch (\PDOException $e) {
+    } catch (\Exception $e) {
         die("Terjadi kesalahan database: " . $e->getMessage());
     }
 

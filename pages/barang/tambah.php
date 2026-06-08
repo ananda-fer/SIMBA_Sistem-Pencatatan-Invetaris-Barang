@@ -9,9 +9,8 @@
     require_once __DIR__ . '/../../config/koneksi.php';
 
     try {
-        $kategori_stmt = $pdo->query("SELECT * FROM kategori");
-        $kategori_list = $kategori_stmt->fetchAll();
-    } catch (\PDOException $e) {
+        $kategori_list = $conn->query("SELECT * FROM kategori")->fetch_all(MYSQLI_ASSOC);
+    } catch (\Exception $e) {
         $kategori_list = [];
     }
 

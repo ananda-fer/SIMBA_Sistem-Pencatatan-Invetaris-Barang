@@ -10,13 +10,14 @@ if (!$id) { header('Location: index.php?tab=arsip'); exit; }
 // =========================================================================
 // DATA LAPORAN
 // =========================================================================
-$stmtL = $pdo->prepare("
+$stmtL = $conn->prepare("
     SELECT l.*, u.nama_lengkap AS nama_pembuat
     FROM laporan l JOIN users u ON u.id = l.dibuat_oleh
-    WHERE l.id = :id
+    WHERE l.id = ?
 ");
-$stmtL->execute([':id' => $id]);
-$laporan = $stmtL->fetch();
+$stmtL->bind_param("i", $id);
+$stmtL->execute();
+$laporan = $stmtL->get_result()->fetch_assoc();
 if (!$laporan) { header('Location: index.php?tab=arsip'); exit; }
 
 $jenis  = $laporan['jenis_laporan'];
@@ -29,7 +30,7 @@ $akhir  = $laporan['periode_akhir'];
 
 // --- PEMINJAMAN ---
 if ($jenis === 'peminjaman' || $jenis === 'semua') {
-    $stmtPinjam = $pdo->prepare("
+    $stmtPinjam = $conn->prepare("
         SELECT
             pp.id, pp.keperluan, pp.tanggal_pinjam, pp.tanggal_kembali AS rencana_kembali,
             pp.status, pp.file_surat, pp.catatan_tolak, pp.dibuat_pada, pp.diperbarui_pada,
@@ -45,17 +46,18 @@ if ($jenis === 'peminjaman' || $jenis === 'semua') {
         LEFT JOIN users u_s ON u_s.id = pp.disetujui_oleh
         LEFT JOIN detail_peminjaman dp ON dp.id_peminjaman = pp.id
         LEFT JOIN barang b ON b.id = dp.id_barang
-        WHERE pp.tanggal_pinjam BETWEEN :awal AND :akhir
+        WHERE pp.tanggal_pinjam BETWEEN ? AND ?
         GROUP BY pp.id
         ORDER BY pp.tanggal_pinjam ASC, pp.id ASC
     ");
-    $stmtPinjam->execute([':awal' => $awal, ':akhir' => $akhir]);
-    $dataPinjam = $stmtPinjam->fetchAll();
+    $stmtPinjam->bind_param("ss", $awal, $akhir);
+    $stmtPinjam->execute();
+    $dataPinjam = $stmtPinjam->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
 // --- PENGEMBALIAN ---
 if ($jenis === 'pengembalian' || $jenis === 'semua') {
-    $stmtKembali = $pdo->prepare("
+    $stmtKembali = $conn->prepare("
         SELECT
             pen.id AS pen_id,
             pen.tanggal_kembali AS tgl_kembali_aktual,
@@ -80,12 +82,13 @@ if ($jenis === 'pengembalian' || $jenis === 'semua') {
         JOIN users u_t ON u_t.id = pen.diterima_oleh
         LEFT JOIN detail_peminjaman dp ON dp.id_peminjaman = pp.id
         LEFT JOIN barang b ON b.id = dp.id_barang
-        WHERE pen.tanggal_kembali BETWEEN :awal AND :akhir
+        WHERE pen.tanggal_kembali BETWEEN ? AND ?
         GROUP BY pen.id
         ORDER BY pen.tanggal_kembali ASC, pen.id ASC
     ");
-    $stmtKembali->execute([':awal' => $awal, ':akhir' => $akhir]);
-    $dataKembali = $stmtKembali->fetchAll();
+    $stmtKembali->bind_param("ss", $awal, $akhir);
+    $stmtKembali->execute();
+    $dataKembali = $stmtKembali->get_result()->fetch_all(MYSQLI_ASSOC);
     // Buat map pp_id → pengembalian untuk mode "semua"
     $mapKembali = [];
     foreach ($dataKembali as $k) $mapKembali[$k['pp_id']] = $k;
@@ -93,7 +96,7 @@ if ($jenis === 'pengembalian' || $jenis === 'semua') {
 
 // --- INVENTARIS ---
 if ($jenis === 'inventaris') {
-    $stmtInv = $pdo->prepare("
+    $stmtInv = $conn->prepare("
         SELECT
             b.id, b.kode_barang, b.nama, b.stok_total, b.stok_tersedia,
             b.kondisi, b.status,
@@ -103,12 +106,13 @@ if ($jenis === 'inventaris') {
         LEFT JOIN kategori k ON k.id = b.kategori_id
         LEFT JOIN detail_peminjaman dp ON dp.id_barang = b.id
         LEFT JOIN pengajuan_peminjaman pp ON pp.id = dp.id_peminjaman
-            AND pp.tanggal_pinjam BETWEEN :awal AND :akhir
+            AND pp.tanggal_pinjam BETWEEN ? AND ?
         GROUP BY b.id
         ORDER BY dipinjam_periode DESC, b.nama ASC
     ");
-    $stmtInv->execute([':awal' => $awal, ':akhir' => $akhir]);
-    $dataInventaris = $stmtInv->fetchAll();
+    $stmtInv->bind_param("ss", $awal, $akhir);
+    $stmtInv->execute();
+    $dataInventaris = $stmtInv->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
 // =========================================================================
