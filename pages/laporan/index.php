@@ -671,6 +671,10 @@ require_once $basePath . 'includes/sidebar.php';
                             <a href="detail_laporan.php?id=<?= $lap['id'] ?>" class="btn-act btn-detail">
                                 <i class="fa-solid fa-eye me-1"></i>Lihat
                             </a>
+                            <a href="cetak_laporan.php?id=<?= $lap['id'] ?>" target="_blank" class="btn-act btn-detail"
+                               style="background:#1e1e2d;color:#fca311">
+                                <i class="fa-solid fa-file-pdf me-1"></i>Export PDF
+                            </a>
                             <button class="btn-act btn-edit"
                                 onclick='bukaEdit(<?= htmlspecialchars(json_encode($lap, JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES) ?>)'>
                                 <i class="fa-solid fa-pen me-1"></i>Edit
