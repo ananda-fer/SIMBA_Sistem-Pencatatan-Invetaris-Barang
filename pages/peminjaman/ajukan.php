@@ -64,8 +64,8 @@ if (isset($_POST['simpan'])) {
     if ($tanggal_pinjam == '' || $tanggal_kembali == '') {
         $errors[] = 'Tanggal pinjam dan tanggal kembali wajib diisi.';
     }
-    if ($tanggal_pinjam != '' && $tanggal_kembali != '' && $tanggal_kembali <= $tanggal_pinjam) {
-        $errors[] = 'Tanggal kembali harus lebih besar dari tanggal pinjam.';
+    if ($tanggal_pinjam != '' && $tanggal_kembali != '' && $tanggal_kembali < $tanggal_pinjam) {
+        $errors[] = 'Tanggal kembali tidak boleh sebelum tanggal pinjam.';
     }
     if ($tanggal_pinjam != '' && $tanggal_pinjam < date('Y-m-d')) {
         $errors[] = 'Tanggal pinjam tidak boleh di masa lalu.';
@@ -252,7 +252,7 @@ require_once '../../includes/sidebar.php';
                 <div class="form-group">
                     <label class="form-label">Tanggal Kembali <span class="required">*</span></label>
                     <input type="date" name="tanggal_kembali" class="form-input"
-                        min="<?= date('Y-m-d', strtotime('+1 day')) ?>"
+                        min="<?= date('Y-m-d') ?>"
                         value="<?= htmlspecialchars($_POST['tanggal_kembali'] ?? '') ?>" required>
                 </div>
             </div>

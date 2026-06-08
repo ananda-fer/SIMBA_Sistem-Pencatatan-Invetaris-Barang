@@ -326,10 +326,6 @@ function validasiFormAjukan() {
         showToast('Tanggal kembali harus diisi.', 'error');
         return false;
     }
-    if (tgl_kembali && tgl_pinjam && tgl_kembali.value <= tgl_pinjam.value) {
-        showToast('Tanggal kembali harus setelah tanggal pinjam.', 'error');
-        return false;
-    }
     if (barangChecked.length === 0 && selectedBarang.length === 0) {
         showToast('Pilih minimal 1 barang.', 'error');
         return false;
