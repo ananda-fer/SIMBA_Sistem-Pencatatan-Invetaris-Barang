@@ -15,6 +15,7 @@ function e(?string $value): string {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
+
 function bind_params(mysqli_stmt $stmt, string $types, array &$params): void {
     $refs = [];
     foreach ($params as $key => &$value) {
