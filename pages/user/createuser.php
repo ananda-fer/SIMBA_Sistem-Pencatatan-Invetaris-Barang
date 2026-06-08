@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah User - SIMBA</title>
-    <link rel="stylesheet" href="<?= app_url('assets/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('assets/css/style.css') ?>">
     <style>
         .page-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}.page-head h2{margin:0;font-size:24px}.page-head p{margin:5px 0 0;color:#6b7280}
         .form-card{background:#fff;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 8px 18px rgba(15,23,42,.04);padding:22px;max-width:720px}
