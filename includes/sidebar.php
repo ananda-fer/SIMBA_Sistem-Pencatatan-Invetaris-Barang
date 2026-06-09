@@ -45,7 +45,7 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
             Dashboard
         </a>
 
-        <?php if (in_array($peran, ['admin', 'staff_tu'])): ?>
+
         <!-- Barang -->
         <a href="<?= app_url('pages/barang/index.php') ?>" class="sb-item <?= sb_active('barang') ?>">
             <span class="sb-icon">
