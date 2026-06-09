@@ -182,12 +182,18 @@ require_once $basePath . 'includes/sidebar.php';
             </p>
         </div>
     </div>
-    <?php if ($laporan['file_pdf']): ?>
-    <a href="<?= app_url($laporan['file_pdf']) ?>" target="_blank"
-       style="display:inline-flex;align-items:center;gap:8px;background:#1e1e2d;color:#fca311;padding:8px 18px;border-radius:8px;font-weight:700;font-size:.85rem;text-decoration:none">
-        <i class="fa-solid fa-file-pdf"></i> Lihat PDF Resmi
-    </a>
-    <?php endif; ?>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="cetak_laporan.php?id=<?= (int)$laporan['id'] ?>" target="_blank"
+           style="display:inline-flex;align-items:center;gap:8px;background:#fca311;color:#1e1e2d;padding:8px 18px;border-radius:8px;font-weight:700;font-size:.85rem;text-decoration:none">
+            <i class="fa-solid fa-file-arrow-down"></i> Export PDF
+        </a>
+        <?php if ($laporan['file_pdf']): ?>
+        <a href="<?= app_url($laporan['file_pdf']) ?>" target="_blank"
+           style="display:inline-flex;align-items:center;gap:8px;background:#1e1e2d;color:#fca311;padding:8px 18px;border-radius:8px;font-weight:700;font-size:.85rem;text-decoration:none">
+            <i class="fa-solid fa-file-pdf"></i> Lihat PDF Resmi
+        </a>
+        <?php endif; ?>
+    </div>
 </div>
 
 <!-- Info Laporan + Statistik -->

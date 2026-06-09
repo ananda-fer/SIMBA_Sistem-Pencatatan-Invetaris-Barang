@@ -15,7 +15,17 @@ $peran = $_SESSION['peran'] ?? 'peminjam';
 $nama  = $_SESSION['nama_lengkap'] ?? 'User';
 $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? strtoupper(substr(strrchr($nama, ' '), 1, 1)) : '');
 ?>
-<aside class="sidebar">
+<!-- Tombol hamburger (hanya tampil di mobile) -->
+<button class="sb-toggle" id="sbToggle" aria-label="Buka menu" aria-controls="appSidebar" aria-expanded="false">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M3 12h18M3 6h18M3 18h18"/>
+    </svg>
+</button>
+
+<!-- Overlay gelap saat sidebar terbuka di mobile -->
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<aside class="sidebar" id="appSidebar">
 
     <!-- Logo -->
     <div class="sb-logo">
@@ -118,3 +128,36 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
         </a>
     </div>
 </aside>
+
+<script>
+(function () {
+    var toggle  = document.getElementById('sbToggle');
+    var sidebar = document.getElementById('appSidebar');
+    var overlay = document.getElementById('sbOverlay');
+    if (!toggle || !sidebar) return;
+
+    function openSidebar() {
+        sidebar.classList.add('open');
+        if (overlay) overlay.classList.add('show');
+        toggle.setAttribute('aria-expanded', 'true');
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggle.addEventListener('click', function () {
+        sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+
+    // Tutup otomatis saat memilih menu atau menekan Esc
+    sidebar.querySelectorAll('.sb-item, .sb-logout').forEach(function (el) {
+        el.addEventListener('click', closeSidebar);
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeSidebar();
+    });
+})();
+</script>

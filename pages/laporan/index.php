@@ -180,46 +180,33 @@ require_once $basePath . 'includes/sidebar.php';
 </div>
 
 <!-- Tabs -->
-<ul class="nav nav-tabs mb-4" style="border-bottom:2px solid #e5e7eb">
-    <li class="nav-item">
-        <a class="nav-link <?= $tab === 'pengajuan' ? 'active fw-700' : '' ?>"
-           href="?tab=pengajuan"
-           style="font-weight:600;font-size:.88rem;color:<?= $tab==='pengajuan' ? '#1e1e2d' : '#6b7280' ?>">
-            <i class="fa-solid fa-list-check me-1"></i> Data Pengajuan
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link <?= $tab === 'pengembalian' ? 'active fw-700' : '' ?>"
-           href="?tab=pengembalian"
-           style="font-weight:600;font-size:.88rem;color:<?= $tab==='pengembalian' ? '#1e1e2d' : '#6b7280' ?>">
-            <i class="fa-solid fa-rotate-left me-1"></i> Data Pengembalian
-            <?php if (count($dataPengembalian)): ?>
-            <span class="badge rounded-pill ms-1"
-                  style="background:#1a7a4a;color:#fff;font-size:.7rem"><?= count($dataPengembalian) ?></span>
-            <?php endif; ?>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link <?= $tab === 'barang' ? 'active fw-700' : '' ?>"
-           href="?tab=barang"
-           style="font-weight:600;font-size:.88rem;color:<?= $tab==='barang' ? '#1e1e2d' : '#6b7280' ?>">
-            <i class="fa-solid fa-boxes-stacked me-1"></i> Data Barang
-            <span class="badge rounded-pill ms-1"
-                  style="background:#4361ee;color:#fff;font-size:.7rem"><?= count($dataBarang) ?></span>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link <?= $tab === 'arsip' ? 'active fw-700' : '' ?>"
-           href="?tab=arsip"
-           style="font-weight:600;font-size:.88rem;color:<?= $tab==='arsip' ? '#1e1e2d' : '#6b7280' ?>">
-            <i class="fa-solid fa-folder-open me-1"></i> Arsip Laporan
-            <?php if (count($dataLaporan)): ?>
-            <span class="badge rounded-pill ms-1"
-                  style="background:#1e1e2d;color:#fca311;font-size:.7rem"><?= count($dataLaporan) ?></span>
-            <?php endif; ?>
-        </a>
-    </li>
-</ul>
+<div class="status-tabs">
+    <a href="?tab=pengajuan" class="status-tab <?= $tab === 'pengajuan' ? 'active' : '' ?>">
+        Data Pengajuan
+        <?php if (count($dataPengajuan)): ?>
+        <span class="status-count"><?= count($dataPengajuan) ?></span>
+        <?php endif; ?>
+    </a>
+    <a href="?tab=pengembalian" class="status-tab <?= $tab === 'pengembalian' ? 'active' : '' ?>">
+        Data Pengembalian
+        <?php if (count($dataPengembalian)): ?>
+        <span class="status-count"><?= count($dataPengembalian) ?></span>
+        <?php endif; ?>
+    </a>
+    <a href="?tab=barang" class="status-tab <?= $tab === 'barang' ? 'active' : '' ?>">
+        Data Barang
+        <?php if (count($dataBarang)): ?>
+        <span class="status-count"><?= count($dataBarang) ?></span>
+        <?php endif; ?>
+        
+    </a>
+    <a href="?tab=arsip" class="status-tab <?= $tab === 'arsip' ? 'active' : '' ?>">
+        Arsip Laporan
+        <?php if (count($dataLaporan)): ?>
+        <span class="status-count"><?= count($dataLaporan) ?></span>
+        <?php endif; ?>
+    </a>
+</div>
 
 <!-- ===================================================================
      TAB 1: DATA PENGAJUAN PEMINJAMAN (Read-only, auto dari DB)
@@ -242,38 +229,34 @@ require_once $basePath . 'includes/sidebar.php';
     <div class="filter-card">
         <form method="GET">
             <input type="hidden" name="tab" value="pengajuan">
-            <div class="row g-3 align-items-end">
-                <div class="col-6 col-md-2">
+            <div class="filter-row">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
                     <label>Dari Tanggal</label>
-                    <input type="date" class="form-control" name="mulai" value="<?= htmlspecialchars($f_mulai) ?>">
+                    <input type="date" class="form-input" name="mulai" value="<?= htmlspecialchars($f_mulai) ?>">
                 </div>
-                <div class="col-6 col-md-2">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
                     <label>Sampai Tanggal</label>
-                    <input type="date" class="form-control" name="akhir" value="<?= htmlspecialchars($f_akhir) ?>">
+                    <input type="date" class="form-input" name="akhir" value="<?= htmlspecialchars($f_akhir) ?>">
                 </div>
-                <div class="col-6 col-md-2">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
                     <label>Status</label>
-                    <select class="form-select" name="status">
+                    <select class="form-input" name="status">
                         <option value="">Semua Status</option>
                         <?php foreach (['menunggu','diverifikasi','disetujui','ditolak','aktif','selesai','dibatalkan'] as $s): ?>
                         <option value="<?= $s ?>" <?= $f_status === $s ? 'selected' : '' ?>><?= ucfirst($s) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-6 col-md-3">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:2;min-width:180px">
                     <label>Cari Peminjam</label>
-                    <input type="text" class="form-control" name="cari" value="<?= htmlspecialchars($f_cari) ?>" placeholder="Nama peminjam...">
+                    <input type="text" class="form-input" name="cari" value="<?= htmlspecialchars($f_cari) ?>" placeholder="Nama peminjam...">
                 </div>
-                <div class="col-6 col-md-2">
-                    <button type="submit" class="btn-simpan-laporan">
-                        <i class="fa-solid fa-magnifying-glass me-1"></i> Cari
-                    </button>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">Cari</button>
+                    <?php if ($f_mulai || $f_akhir || $f_status || $f_cari): ?>
+                    <a href="?tab=pengajuan" class="btn btn-outline">Reset</a>
+                    <?php endif; ?>
                 </div>
-                <?php if ($f_mulai || $f_akhir || $f_status || $f_cari): ?>
-                <div class="col-auto" style="display:flex;align-items:flex-end">
-                    <a href="?tab=pengajuan" style="color:#ccc;font-size:.8rem;text-decoration:none;margin-top:22px">&#x2715; Reset</a>
-                </div>
-                <?php endif; ?>
             </div>
         </form>
     </div>
@@ -283,7 +266,8 @@ require_once $basePath . 'includes/sidebar.php';
     </div>
 
     <div class="table-card">
-        <table class="table table-borderless">
+        <div class="table-wrapper">
+        <table class="table-modern" id="tblPengajuan">
             <thead>
                 <tr>
                     <th width="4%"  class="text-center">NO</th>
@@ -303,13 +287,23 @@ require_once $basePath . 'includes/sidebar.php';
                         <i class="fa-solid fa-folder-open fa-2x mb-2 d-block"></i>
                         Belum ada data pengajuan<?= ($f_mulai||$f_akhir||$f_status||$f_cari) ? ' sesuai filter.' : '.' ?>
                     </td></tr>
-                <?php else: foreach ($dataPengajuan as $i => $row):
+                <?php else:
+                $statusCfgP = [
+                    'menunggu'     => ['bg'=>'#fef9c3','fg'=>'#854d0e'],
+                    'diverifikasi' => ['bg'=>'#dbeafe','fg'=>'#1d4ed8'],
+                    'disetujui'    => ['bg'=>'#dcfce7','fg'=>'#166534'],
+                    'ditolak'      => ['bg'=>'#fee2e2','fg'=>'#991b1b'],
+                    'aktif'        => ['bg'=>'#e0f2fe','fg'=>'#0369a1'],
+                    'selesai'      => ['bg'=>'#d1fae5','fg'=>'#065f46'],
+                    'dibatalkan'   => ['bg'=>'#f3f4f6','fg'=>'#6b7280'],
+                ];
+                foreach ($dataPengajuan as $i => $row):
                     $namaArr   = $row['nama_barang_list'] ? explode('||', $row['nama_barang_list']) : [];
                     $jumlahArr = $row['jumlah_list']      ? explode('||', $row['jumlah_list'])      : [];
                     $bagian = [];
                     foreach ($namaArr as $k => $nb) $bagian[] = htmlspecialchars($nb).' <span style="color:#555">x'.((int)($jumlahArr[$k]??1)).'</span>';
                     $barangHtml = $bagian ? implode(', ', $bagian) : '<span style="color:#aaa">—</span>';
-                    $sc = ['menunggu'=>'#9c7e2f','diverifikasi'=>'#1a6ba8','disetujui'=>'#1a7a4a','ditolak'=>'#a33c44','aktif'=>'#1e1e2d','selesai'=>'#495057','dibatalkan'=>'#6c757d'][$row['status']] ?? '#6c757d';
+                    $sc = $statusCfgP[$row['status']] ?? ['bg'=>'#f3f4f6','fg'=>'#6b7280'];
                 ?>
                 <tr>
                     <td class="text-center"><?= $i+1 ?></td>
@@ -338,7 +332,7 @@ require_once $basePath . 'includes/sidebar.php';
                         <?php else: ?><span style="color:#aaa">—</span><?php endif; ?>
                     </td>
                     <td class="text-center">
-                        <span style="background:<?= $sc ?>;color:#fff;padding:4px 8px;border-radius:20px;font-size:.7rem;font-weight:700;white-space:nowrap">
+                        <span style="background:<?= $sc['bg'] ?>;color:<?= $sc['fg'] ?>;padding:4px 8px;border-radius:20px;font-size:.7rem;font-weight:700;white-space:nowrap">
                             <?= strtoupper($row['status']) ?>
                         </span>
                     </td>
@@ -352,6 +346,7 @@ require_once $basePath . 'includes/sidebar.php';
                 <?php endforeach; endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
@@ -378,38 +373,34 @@ require_once $basePath . 'includes/sidebar.php';
     <div class="filter-card">
         <form method="GET">
             <input type="hidden" name="tab" value="pengembalian">
-            <div class="row g-3 align-items-end">
-                <div class="col-6 col-md-2">
+            <div class="filter-row">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
                     <label>Dari Tanggal</label>
-                    <input type="date" class="form-control" name="pen_mulai" value="<?= htmlspecialchars($fp_mulai) ?>">
+                    <input type="date" class="form-input" name="pen_mulai" value="<?= htmlspecialchars($fp_mulai) ?>">
                 </div>
-                <div class="col-6 col-md-2">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
                     <label>Sampai Tanggal</label>
-                    <input type="date" class="form-control" name="pen_akhir" value="<?= htmlspecialchars($fp_akhir) ?>">
+                    <input type="date" class="form-input" name="pen_akhir" value="<?= htmlspecialchars($fp_akhir) ?>">
                 </div>
-                <div class="col-6 col-md-2">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
                     <label>Kondisi</label>
-                    <select class="form-select" name="pen_kondisi">
+                    <select class="form-input" name="pen_kondisi">
                         <option value="">Semua Kondisi</option>
                         <option value="baik"        <?= $fp_kondisi==='baik'         ? 'selected':'' ?>>Baik</option>
                         <option value="rusak_ringan" <?= $fp_kondisi==='rusak_ringan' ? 'selected':'' ?>>Rusak Ringan</option>
                         <option value="rusak_berat"  <?= $fp_kondisi==='rusak_berat'  ? 'selected':'' ?>>Rusak Berat</option>
                     </select>
                 </div>
-                <div class="col-6 col-md-3">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:2;min-width:180px">
                     <label>Cari Peminjam</label>
-                    <input type="text" class="form-control" name="pen_cari" value="<?= htmlspecialchars($fp_cari) ?>" placeholder="Nama peminjam...">
+                    <input type="text" class="form-input" name="pen_cari" value="<?= htmlspecialchars($fp_cari) ?>" placeholder="Nama peminjam...">
                 </div>
-                <div class="col-6 col-md-2">
-                    <button type="submit" class="btn-simpan-laporan">
-                        <i class="fa-solid fa-magnifying-glass me-1"></i> Cari
-                    </button>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">Cari</button>
+                    <?php if ($fp_mulai || $fp_akhir || $fp_kondisi || $fp_cari): ?>
+                    <a href="?tab=pengembalian" class="btn btn-outline">Reset</a>
+                    <?php endif; ?>
                 </div>
-                <?php if ($fp_mulai || $fp_akhir || $fp_kondisi || $fp_cari): ?>
-                <div class="col-auto" style="display:flex;align-items:flex-end">
-                    <a href="?tab=pengembalian" style="color:#ccc;font-size:.8rem;text-decoration:none;margin-top:22px">&#x2715; Reset</a>
-                </div>
-                <?php endif; ?>
             </div>
         </form>
     </div>
@@ -419,7 +410,8 @@ require_once $basePath . 'includes/sidebar.php';
     </div>
 
     <div class="table-card">
-        <table class="table table-borderless">
+        <div class="table-wrapper">
+        <table class="table-modern" id="tblPengembalian">
             <thead>
                 <tr>
                     <th width="4%"  class="text-center">NO</th>
@@ -485,6 +477,7 @@ require_once $basePath . 'includes/sidebar.php';
                 <?php endforeach; endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
@@ -512,39 +505,35 @@ require_once $basePath . 'includes/sidebar.php';
     <div class="filter-card">
         <form method="GET">
             <input type="hidden" name="tab" value="barang">
-            <div class="row g-3 align-items-end">
-                <div class="col-6 col-md-3">
+            <div class="filter-row">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:2;min-width:180px">
                     <label>Cari Barang</label>
-                    <input type="text" class="form-control" name="brg_cari" value="<?= htmlspecialchars($fb_cari) ?>" placeholder="Nama atau kode barang...">
+                    <input type="text" class="form-input" name="brg_cari" value="<?= htmlspecialchars($fb_cari) ?>" placeholder="Nama atau kode barang...">
                 </div>
-                <div class="col-6 col-md-2">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
                     <label>Kondisi</label>
-                    <select class="form-select" name="brg_kondisi">
+                    <select class="form-input" name="brg_kondisi">
                         <option value="">Semua Kondisi</option>
                         <option value="baik"         <?= $fb_kondisi==='baik'         ? 'selected':'' ?>>Baik</option>
                         <option value="rusak_ringan"  <?= $fb_kondisi==='rusak_ringan'  ? 'selected':'' ?>>Rusak Ringan</option>
                         <option value="rusak_berat"   <?= $fb_kondisi==='rusak_berat'   ? 'selected':'' ?>>Rusak Berat</option>
                     </select>
                 </div>
-                <div class="col-6 col-md-2">
+                <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
                     <label>Status</label>
-                    <select class="form-select" name="brg_status">
+                    <select class="form-input" name="brg_status">
                         <option value="">Semua Status</option>
                         <option value="tersedia"       <?= $fb_status==='tersedia'       ? 'selected':'' ?>>Tersedia</option>
                         <option value="dipinjam"       <?= $fb_status==='dipinjam'       ? 'selected':'' ?>>Dipinjam</option>
                         <option value="dalam_perbaikan"<?= $fb_status==='dalam_perbaikan'? 'selected':'' ?>>Dalam Perbaikan</option>
                     </select>
                 </div>
-                <div class="col-6 col-md-2">
-                    <button type="submit" class="btn-simpan-laporan">
-                        <i class="fa-solid fa-magnifying-glass me-1"></i> Cari
-                    </button>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">Cari</button>
+                    <?php if ($fb_kondisi || $fb_status || $fb_cari): ?>
+                    <a href="?tab=barang" class="btn btn-outline">Reset</a>
+                    <?php endif; ?>
                 </div>
-                <?php if ($fb_kondisi || $fb_status || $fb_cari): ?>
-                <div class="col-auto" style="display:flex;align-items:flex-end">
-                    <a href="?tab=barang" style="color:#ccc;font-size:.8rem;text-decoration:none;margin-top:22px">&#x2715; Reset</a>
-                </div>
-                <?php endif; ?>
             </div>
         </form>
     </div>
@@ -554,7 +543,8 @@ require_once $basePath . 'includes/sidebar.php';
     </div>
 
     <div class="table-card">
-        <table class="table table-borderless">
+        <div class="table-wrapper">
+        <table class="table-modern" id="tblBarang">
             <thead>
                 <tr>
                     <th width="4%"  class="text-center">NO</th>
@@ -619,6 +609,7 @@ require_once $basePath . 'includes/sidebar.php';
                 <?php endforeach; endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
@@ -635,7 +626,8 @@ require_once $basePath . 'includes/sidebar.php';
     </div>
 
     <div class="table-card">
-        <table class="table table-borderless">
+        <div class="table-wrapper">
+        <table class="table-modern" id="tblArsip">
             <thead>
                 <tr>
                     <th width="5%"  class="text-center">NO</th>
@@ -679,6 +671,10 @@ require_once $basePath . 'includes/sidebar.php';
                             <a href="detail_laporan.php?id=<?= $lap['id'] ?>" class="btn-act btn-detail">
                                 <i class="fa-solid fa-eye me-1"></i>Lihat
                             </a>
+                            <a href="cetak_laporan.php?id=<?= $lap['id'] ?>" target="_blank" class="btn-act btn-detail"
+                               style="background:#1e1e2d;color:#fca311">
+                                <i class="fa-solid fa-file-pdf me-1"></i>Export PDF
+                            </a>
                             <button class="btn-act btn-edit"
                                 onclick='bukaEdit(<?= htmlspecialchars(json_encode($lap, JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES) ?>)'>
                                 <i class="fa-solid fa-pen me-1"></i>Edit
@@ -693,6 +689,7 @@ require_once $basePath . 'includes/sidebar.php';
                 <?php endforeach; endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
@@ -889,8 +886,17 @@ function bukaDetailPengajuan(row) {
     }
     if (!barangRows) barangRows = '<tr><td colspan="2" style="text-align:center;color:#aaa;padding:10px 0">Tidak ada data</td></tr>';
 
-    var sc = {menunggu:'#9c7e2f',diverifikasi:'#1a6ba8',disetujui:'#1a7a4a',ditolak:'#a33c44',aktif:'#1e1e2d',selesai:'#495057',dibatalkan:'#6c757d'}[row.status]||'#6c757d';
-    var badge  = '<span style="background:'+sc+';color:#fff;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700">'+row.status.toUpperCase()+'</span>';
+    var scMap = {
+        menunggu:    {bg:'#fef9c3',fg:'#854d0e'},
+        diverifikasi:{bg:'#dbeafe',fg:'#1d4ed8'},
+        disetujui:   {bg:'#dcfce7',fg:'#166534'},
+        ditolak:     {bg:'#fee2e2',fg:'#991b1b'},
+        aktif:       {bg:'#e0f2fe',fg:'#0369a1'},
+        selesai:     {bg:'#d1fae5',fg:'#065f46'},
+        dibatalkan:  {bg:'#f3f4f6',fg:'#6b7280'}
+    };
+    var sc = scMap[row.status] || {bg:'#f3f4f6',fg:'#6b7280'};
+    var badge  = '<span style="background:'+sc.bg+';color:'+sc.fg+';padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700">'+row.status.toUpperCase()+'</span>';
     var surat  = row.surat_url ? '<a href="'+row.surat_url+'" target="_blank" style="color:#1a7a4a;font-weight:700;text-decoration:none"><i class="fa-solid fa-file-pdf me-1"></i>Lihat PDF</a>' : '<span style="color:#aaa">Tidak ada</span>';
     var staff  = row.nama_staff ? '<strong>'+row.nama_staff+'</strong> <small style="color:#6b7280">('+row.diperbarui_pada.substring(0,10)+')</small>' : '<span style="color:#aaa">Belum diproses</span>';
     var catatan = (row.status==='ditolak' && row.catatan_tolak)
@@ -988,6 +994,56 @@ function bukaHapus(id, judul) {
     document.getElementById('hapus-judul').textContent = judul;
     new bootstrap.Modal(document.getElementById('modalHapus')).show();
 }
+
+// ---- Pagination tabel laporan (client-side) ----
+// Memecah baris tabel jadi beberapa halaman supaya tidak scroll panjang.
+function paginateTabelLaporan(tableId, perPage) {
+    var table = document.getElementById(tableId);
+    if (!table) return;
+    var tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    // Ambil hanya baris data (abaikan baris "empty state")
+    var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr')).filter(function (tr) {
+        return !tr.classList.contains('empty-row');
+    });
+    if (rows.length <= perPage) return; // tak perlu pagination
+
+    var pages   = Math.ceil(rows.length / perPage);
+    var current = 1;
+
+    var pag = document.createElement('div');
+    pag.className = 'pagination';
+    pag.style.justifyContent = 'center';
+    (table.closest('.table-card') || table.parentNode).appendChild(pag);
+
+    function render() {
+        rows.forEach(function (tr, idx) {
+            tr.style.display = (Math.floor(idx / perPage) + 1 === current) ? '' : 'none';
+        });
+
+        var html = '<a class="page-btn' + (current === 1 ? ' disabled' : '') + '" data-go="' + (current - 1) + '">&laquo;</a>';
+        for (var p = 1; p <= pages; p++) {
+            html += '<a class="page-btn' + (p === current ? ' active' : '') + '" data-go="' + p + '">' + p + '</a>';
+        }
+        html += '<a class="page-btn' + (current === pages ? ' disabled' : '') + '" data-go="' + (current + 1) + '">&raquo;</a>';
+        pag.innerHTML = html;
+
+        pag.querySelectorAll('.page-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (this.classList.contains('disabled') || this.classList.contains('active')) return;
+                var go = parseInt(this.getAttribute('data-go'), 10);
+                if (go >= 1 && go <= pages) { current = go; render(); }
+            });
+        });
+    }
+    render();
+}
+
+paginateTabelLaporan('tblPengajuan',    10);
+paginateTabelLaporan('tblPengembalian', 10);
+paginateTabelLaporan('tblBarang',       10);
+paginateTabelLaporan('tblArsip',        10);
 </script>
 
 <?php require_once $basePath . 'includes/footer.php'; ?>

@@ -2,90 +2,82 @@
    LAPORAN.CSS — Styles khusus halaman Laporan
    ========================================================================= */
 
-/* Filter Card (Panel abu-abu gelap) */
+/* Filter Card */
 .filter-card {
-    background-color: #8c8c8c;
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
+    background: #fff !important;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
 }
 .filter-card label {
     font-weight: 500;
     margin-bottom: 6px;
-    color: #f1f1f1;
+    color: #374151;
     font-size: 0.82rem;
     display: block;
 }
 .filter-card .form-control,
 .filter-card .form-select {
-    background-color: #2b2b2b;
-    border: 1px solid #3a3a3a;
-    color: #fff;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    color: #1a1a1a;
     border-radius: 6px;
     padding: 8px 12px;
     font-size: 0.83rem;
 }
-.filter-card .form-control::-webkit-calendar-picker-indicator { filter: invert(0.7); }
-.filter-card .form-control::placeholder { color: #888; }
+.filter-card .form-control::placeholder { color: #9ca3af; }
 .filter-card .form-control:focus,
 .filter-card .form-select:focus {
-    background-color: #333;
-    color: #fff;
-    box-shadow: none;
-    border-color: #fca311;
-}
-.filter-card .form-select option { background-color: #2b2b2b; }
-
-.btn-simpan-laporan {
     background-color: #fff;
-    color: #212529;
-    font-weight: 700;
-    border: none;
-    padding: 9px 18px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    white-space: nowrap;
-    transition: background 0.2s;
-    margin-top: 22px;
-    width: 100%;
-    cursor: pointer;
+    color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.13);
+    border-color: #F5A623;
+    outline: none;
 }
-.btn-simpan-laporan:hover { background-color: #e9ecef; }
+
+/* Sejajarkan tombol "Cari" dengan input (kolom lain punya label di atas,
+   tombol tidak — jadi rata-bawahkan agar sejajar) */
+.filter-card .filter-row { align-items: flex-end; }
+.filter-card .filter-actions { margin-top: 0; }
+
 
 /* Data Table */
 .table-card {
+    background: #fff;
     border-radius: 12px;
+    border: 1px solid #e5e7eb;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-.table { margin-bottom: 0; }
-.table thead th {
-    background-color: #1e1e2d;
-    color: #fff;
-    font-weight: 600;
+.table-card .table-wrapper { overflow-x: auto; }
+.table-card .table-modern thead tr { background-color: #fafafa; }
+.table-card .table-modern th {
+    color: #6b7280;
+    font-weight: 700;
     border: none;
-    padding: 14px 18px;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 11px 18px;
     text-transform: uppercase;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     letter-spacing: 0.6px;
     white-space: nowrap;
 }
-.table tbody tr {
-    background-color: #b0b4b8;
-    border-bottom: 2px solid #d0d3d6;
-    transition: background 0.2s;
+.table-card .table-modern tbody tr {
+    background-color: #fff;
+    border-bottom: 1px solid #f5f5f5;
 }
-.table tbody tr:nth-child(even) { background-color: #a8acb0; }
-.table tbody tr:hover            { background-color: #9ea3a8; }
-.table tbody tr:last-child       { border-bottom: none; }
-.table tbody td {
-    padding: 14px 18px;
+.table-card .table-modern tbody tr:hover td { background-color: #fafafa; }
+.table-card .table-modern tbody tr:last-child td { border-bottom: none; }
+.table-card .table-modern td {
+    padding: 13px 18px;
     vertical-align: middle;
-    color: #1e1e2d;
-    font-weight: 600;
+    color: #374151;
+    font-weight: 500;
     border: none;
     font-size: 0.83rem;
 }
+.table-card .table-modern { margin-bottom: 0; }
 
 /* Action Buttons */
 .btn-act {
@@ -93,7 +85,6 @@
     padding: 4px 13px;
     font-size: 0.72rem;
     font-weight: 700;
-    color: #fff;
     border: none;
     text-decoration: none;
     display: inline-block;
@@ -101,16 +92,20 @@
     cursor: pointer;
     white-space: nowrap;
 }
-.btn-act:hover { opacity: 0.85; color: #fff; transform: translateY(-1px); }
-.btn-detail { background-color: #6c757d; }
-.btn-edit   { background-color: #9c7e2f; }
-.btn-cetak  { background-color: #1a7a4a; }
-.btn-hapus  { background-color: #a33c44; }
+.btn-act:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-detail { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+.btn-detail:hover { background: #f3f4f6; color: #374151; opacity: 1; }
+.btn-edit   { background-color: #9c7e2f; color: #fff; }
+.btn-edit:hover { color: #fff; }
+.btn-cetak  { background-color: #1a7a4a; color: #fff; }
+.btn-cetak:hover { color: #fff; }
+.btn-hapus  { background-color: #a33c44; color: #fff; }
+.btn-hapus:hover { color: #fff; }
 
 /* Badge Kategori */
 .badge-kategori {
     background-color: #1e1e2d;
-    color: #fca311;
+    color: #F5A623;
     font-size: 0.72rem;
     padding: 4px 10px;
     border-radius: 20px;
@@ -120,7 +115,7 @@
 /* Tombol Tambah Laporan */
 .btn-tambah-laporan {
     background-color: #1e1e2d;
-    color: #fca311;
+    color: #F5A623;
     font-weight: 700;
     border: none;
     padding: 9px 20px;
@@ -133,7 +128,7 @@
     transition: background 0.2s;
     cursor: pointer;
 }
-.btn-tambah-laporan:hover { background-color: #2b2d42; color: #fca311; }
+.btn-tambah-laporan:hover { background-color: #2b2d42; color: #F5A623; }
 
 /* Modal */
 .modal-header-dark { background-color: #1e1e2d; color: #fff; border-bottom: none; }
@@ -141,4 +136,9 @@
 .modal-content { border: none; border-radius: 12px; overflow: hidden; }
 
 /* Empty Row */
-.empty-row td { text-align:center; padding: 40px 0; color:#6c757d; background:#b0b4b8; }
+.empty-row td {
+    text-align: center;
+    padding: 40px 0;
+    color: #6b7280;
+    background: #fff;
+}
