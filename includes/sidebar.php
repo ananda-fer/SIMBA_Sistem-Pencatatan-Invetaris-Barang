@@ -45,7 +45,7 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
             Dashboard
         </a>
 
-        <?php if (in_array($peran, ['admin', 'staff_tu', 'peminjam'])): ?>
+        <?php if (in_array($peran, ['admin', 'staff_tu'])): ?>
         <!-- Barang -->
         <a href="<?= app_url('pages/barang/index.php') ?>" class="sb-item <?= sb_active('barang') ?>">
             <span class="sb-icon">
@@ -54,9 +54,8 @@ $inisial = strtoupper(substr($nama, 0, 1)) . (strpos($nama, ' ') !== false ? str
                     <path d="M16 3H8v4h8V3z"/>
                 </svg>
             </span>
-            Data Barang
+            Katalog Barang
         </a>
-        <?php endif; ?>
 
         <?php if ($peran === 'admin'): ?>
         <!-- Kelola User -->
