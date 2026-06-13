@@ -23,8 +23,12 @@
     require_once $basePath . 'includes/sidebar.php';
 ?>
 <main class="main-content">
-
-<h3 class="fw-bold mb-4">Tambah Barang Baru</h3>
+    <div class="page-header">
+        <div>
+            <h2>Tambah Barang</h2>
+            <p>Tambahkan barang baru ke dalam sistem inventaris.</p>
+        </div>
+    </div>
 
 
 <div class="card p-4 shadow-sm">

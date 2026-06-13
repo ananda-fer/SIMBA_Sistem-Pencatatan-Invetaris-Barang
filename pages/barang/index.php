@@ -85,11 +85,17 @@
     require_once $basePath . 'includes/sidebar.php';
 ?>
 <main class="main-content">
-
+    <div class="page-header">
+        <div>
+            <h2>Katalog Barang</h2>
+            <p>Kelola dan pantau seluruh daftar barang inventaris sekolah.</p>
+        </div>
         <?php if ($_SESSION['peran'] === 'admin'): ?>
-        <?php // TOMBOL TAMBAH KHUSUS ADMIN ?>
-        <a href="tambah.php" class="btn btn-warning fw-bold mb-3"><i class="bi bi-bag-plus-fill"></i> Tambah Barang</a>
+        <div>
+            <a href="tambah.php" class="btn btn-warning fw-bold"><i class="bi bi-bag-plus-fill"></i> Tambah Barang</a>
+        </div>
         <?php endif; ?>
+    </div>
         <!-- FORM FILTER KATALOG BARANG -->
         <div class="filter-box mb-4">
         <form method="GET" class="row g-3">

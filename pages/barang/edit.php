@@ -58,6 +58,12 @@
     require_once $basePath . 'includes/sidebar.php';
 ?>
 <main class="main-content">
+    <div class="page-header">
+        <div>
+            <h2>Edit Barang</h2>
+            <p>Perbarui informasi dan detail barang inventaris.</p>
+        </div>
+    </div>
 
 
 <div class="edit-card">
