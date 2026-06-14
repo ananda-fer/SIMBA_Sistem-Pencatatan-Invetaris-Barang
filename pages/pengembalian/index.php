@@ -6,9 +6,6 @@ require_once __DIR__ . '/../../includes/functions.php';
 hanya_role(['admin', 'staff_tu']);
 
 $cari   = sanitasi($_GET['cari'] ?? '');
-$page   = max(1, (int)($_GET['page'] ?? 1));
-$per_page = 10;
-$offset = ($page - 1) * $per_page;
 
 $where_aktif  = ['p.status = ?'];
 $params_aktif = ['aktif'];
@@ -85,7 +82,7 @@ $flash_error   = get_flash('error');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pengembalian Barang — SIMBA</title>
-    <link rel="stylesheet" href="<?= asset_url('assets/css/style.css') ?>">
+    <link rel="stylesheet" href="<?= app_url('assets/css/style.css') ?>">
 </head>
 <body>
 
@@ -264,10 +261,7 @@ $flash_error   = get_flash('error');
                 </table>
             </div>
         </div>
-
     </main>
-</div>
-
-<script src="<?= app_url('assets/js/app.js') ?>"></script>
+</div>  
 </body>
 </html>
