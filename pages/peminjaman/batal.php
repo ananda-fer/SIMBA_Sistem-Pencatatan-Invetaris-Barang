@@ -9,10 +9,10 @@ hanya_role(['peminjam']);
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) redirect('index.php');
 
-// Validasi: hanya bisa batalkan miliknya sendiri & status menunggu/diverifikasi
+// Validasi: hanya bisa batalkan miliknya sendiri & status menunggu
 $stmt = $conn->prepare("
     SELECT id FROM pengajuan_peminjaman
-    WHERE id = ? AND id_peminjam = ? AND status IN ('menunggu', 'diverifikasi')
+    WHERE id = ? AND id_peminjam = ? AND status = 'menunggu'
 ");
 $stmt->bind_param('ii', $id, $_SESSION['user_id']);
 $stmt->execute();

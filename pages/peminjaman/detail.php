@@ -15,11 +15,9 @@ $stmt = $conn->prepare("
            u.nama_lengkap  AS nama_peminjam,
            u.email         AS email_peminjam,
            u.peran         AS peran_peminjam,
-           vf.nama_lengkap AS nama_verifikator,
            ap.nama_lengkap AS nama_approver
     FROM pengajuan_peminjaman pp
     JOIN users u    ON u.id = pp.id_peminjam
-    LEFT JOIN users vf ON vf.id = pp.diverifikasi_oleh
     LEFT JOIN users ap ON ap.id = pp.disetujui_oleh
     WHERE pp.id = ?
 ");
@@ -47,7 +45,7 @@ $detail_stmt->execute();
 $detail_list = $detail_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // Status alur steps
-$status_order = ['menunggu','diverifikasi','disetujui','aktif','selesai'];
+$status_order = ['menunggu','disetujui','aktif','selesai'];
 $current_idx  = array_search($peminjaman['status'], $status_order);
 
 $flash_success = get_flash('success');
@@ -89,14 +87,14 @@ $flash_error   = get_flash('error');
             <div style="display:flex;gap:8px;align-items:center">
                 <?= badge_status($peminjaman['status']) ?>
 
-                <?php if ($peran === 'staff_tu' && in_array($peminjaman['status'], ['menunggu','diverifikasi'])): ?>
-                <a href="approval.php?id=<?= $id ?>" class="btn-verifikasi">Approval</a>
+                <?php if ($peran === 'staff_tu' && $peminjaman['status'] === 'menunggu'): ?>
+                <a href="approval.php?id=<?= $id ?>" class="btn-detail">Approval</a>
 
                 <?php elseif ($peran === 'staff_tu' && $peminjaman['status'] === 'disetujui'): ?>
                 <a href="approval.php?id=<?= $id ?>&aksi=serahkan" class="btn btn-approve btn-sm"
                    onclick="return confirm('Serahkan barang dan ubah status peminjaman menjadi aktif?')">Serahkan Barang</a>
 
-                <?php elseif ($peran === 'peminjam' && in_array($peminjaman['status'], ['menunggu','diverifikasi'])): ?>
+                <?php elseif ($peran === 'peminjam' && $peminjaman['status'] === 'menunggu'): ?>
                 <button type="button" class="btn btn-danger btn-sm"
                         onclick="konfirmasiBatal(<?= $id ?>)">Batalkan</button>
                 <?php endif; ?>
@@ -109,7 +107,7 @@ $flash_error   = get_flash('error');
             <div style="font-size:12.5px;font-weight:600;color:#6b7280;margin-bottom:14px">ALUR STATUS</div>
             <div class="alur-steps">
                 <?php
-                $step_labels = ['Menunggu','Diverifikasi','Disetujui','Aktif','Selesai'];
+                $step_labels = ['Menunggu','Disetujui','Aktif','Selesai'];
                 foreach ($status_order as $si => $s):
                     $done = ($current_idx !== false && $si <= $current_idx);
                 ?>
@@ -123,9 +121,7 @@ $flash_error   = get_flash('error');
                 <?php endforeach; ?>
             </div>
             <?php if ($peminjaman['status'] === 'menunggu'): ?>
-            <div style="margin-top:10px;font-size:12px;color:#9ca3af">Menunggu verifikasi dari Staff TU</div>
-            <?php elseif ($peminjaman['status'] === 'diverifikasi'): ?>
-            <div style="margin-top:10px;font-size:12px;color:#1e40af">Sudah diverifikasi, menunggu keputusan Staff TU</div>
+            <div style="margin-top:10px;font-size:12px;color:#9ca3af">Menunggu keputusan Staff TU</div>
             <?php endif; ?>
         </div>
         <?php endif; ?>
@@ -181,10 +177,6 @@ $flash_error   = get_flash('error');
                     <tr>
                         <td class="detail-label">Tgl Kembali</td>
                         <td class="detail-value"><?= sanitasi($peminjaman['tanggal_kembali']) ?></td>
-                    </tr>
-                    <tr>
-                        <td class="detail-label">Diverifikasi</td>
-                        <td class="detail-value"><?= $peminjaman['nama_verifikator'] ? sanitasi($peminjaman['nama_verifikator']) : '<span class="text-muted">Belum</span>' ?></td>
                     </tr>
                     <tr>
                         <td class="detail-label">Disetujui</td>

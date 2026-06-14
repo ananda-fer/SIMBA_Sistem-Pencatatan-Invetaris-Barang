@@ -24,7 +24,7 @@ $cek = mysqli_prepare(
     $conn,
     "SELECT id FROM pengajuan_peminjaman
      WHERE id_peminjam = ?
-     AND status IN ('menunggu','diverifikasi','disetujui','aktif')
+     AND status IN ('menunggu','disetujui','aktif')
      LIMIT 1"
 );
 mysqli_stmt_bind_param($cek, 'i', $id_user);
@@ -197,7 +197,7 @@ if (isset($_POST['simpan'])) {
             mysqli_stmt_close($ins_det);
         }
 
-        $_SESSION['flash_success'] = 'Pengajuan berhasil dikirim! Tunggu verifikasi Staff TU.';
+        $_SESSION['flash_success'] = 'Pengajuan berhasil dikirim! Tunggu keputusan Staff TU.';
         header('Location: index.php');
         exit;
     }

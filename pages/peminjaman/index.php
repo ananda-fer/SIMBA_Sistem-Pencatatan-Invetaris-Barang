@@ -74,7 +74,6 @@ $total_pages = max(1, ceil($total_rows / $per_page));
 $sql = "SELECT pp.*, 
                u.nama_lengkap  AS nama_peminjam,
                u.peran         AS peran_peminjam,
-               vf.nama_lengkap AS nama_verifikator,
                ap.nama_lengkap AS nama_approver,
                EXISTS(
                    SELECT 1 FROM detail_peminjaman dp
@@ -83,7 +82,6 @@ $sql = "SELECT pp.*,
                ) AS ada_wajib_surat
         FROM pengajuan_peminjaman pp
         JOIN users u    ON u.id  = pp.id_peminjam
-        LEFT JOIN users vf ON vf.id = pp.diverifikasi_oleh
         LEFT JOIN users ap ON ap.id = pp.disetujui_oleh
         WHERE $where_sql
         ORDER BY pp.dibuat_pada DESC
@@ -158,12 +156,11 @@ $flash_error   = get_flash('error');
             $tabs = [
                 'semua'        => 'Semua',
                 'menunggu'     => 'Menunggu',
-                'diverifikasi' => 'Diverifikasi',
                 'disetujui'    => 'Disetujui',
+                'ditolak'      => 'Ditolak',
                 'aktif'        => 'Aktif',
                 'selesai'      => 'Selesai',
             ];
-            if ($peran !== 'peminjam') $tabs['ditolak'] = 'Ditolak';
             foreach ($tabs as $key => $label):
                 $is_active = $tab_aktif === $key;
                 $count     = $tab_counts[$key] ?? null;
@@ -188,7 +185,7 @@ $flash_error   = get_flash('error');
                            value="<?= sanitasi($cari) ?>">
                     <select name="status" class="form-input filter-select">
                         <option value="">Semua Status</option>
-                        <?php foreach (['menunggu','diverifikasi','disetujui','ditolak','aktif','selesai','dibatalkan'] as $s): ?>
+                        <?php foreach (['menunggu','disetujui','ditolak','aktif','selesai','dibatalkan'] as $s): ?>
                         <option value="<?= $s ?>" <?= $filter_stat === $s ? 'selected' : '' ?>>
                             <?= ucfirst(str_replace('_',' ',$s)) ?>
                         </option>
@@ -255,14 +252,14 @@ $flash_error   = get_flash('error');
                                 <div style="display:flex;gap:6px;flex-wrap:wrap">
                                     <a href="detail.php?id=<?= $row['id'] ?>" class="btn-detail">Detail</a>
 
-                                    <?php if ($peran === 'staff_tu' && in_array($row['status'], ['menunggu','diverifikasi'])): ?>
-                                    <a href="approval.php?id=<?= $row['id'] ?>" class="btn-verifikasi">Approval</a>
+                                    <?php if ($peran === 'staff_tu' && $row['status'] === 'menunggu'): ?>
+                                    <a href="approval.php?id=<?= $row['id'] ?>" class="btn-detail">Approval</a>
 
                                     <?php elseif ($peran === 'staff_tu' && $row['status'] === 'disetujui'): ?>
                                     <a href="approval.php?id=<?= $row['id'] ?>&aksi=serahkan" class="btn btn-approve btn-sm"
                                        onclick="return confirm('Serahkan barang dan ubah status peminjaman menjadi aktif?')">Serahkan</a>
 
-                                    <?php elseif ($peran === 'peminjam' && in_array($row['status'], ['menunggu','diverifikasi'])): ?>
+                                    <?php elseif ($peran === 'peminjam' && $row['status'] === 'menunggu'): ?>
                                     <button type="button" class="btn btn-danger btn-sm"
                                             onclick="konfirmasiBatal(<?= $row['id'] ?>)">Batal</button>
                                     <?php endif; ?>

@@ -22,7 +22,7 @@ $stmt = $conn->prepare("
            $select_file_surat
     FROM pengajuan_peminjaman pp
     JOIN users u ON u.id = pp.id_peminjam
-    WHERE pp.id = ? AND pp.status IN ('menunggu', 'diverifikasi', 'disetujui')
+    WHERE pp.id = ? AND pp.status IN ('menunggu', 'disetujui')
 ");
 $stmt->bind_param('i', $id);
 $stmt->execute();
@@ -62,12 +62,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $aksi === 'serahkan') {
             $stmt2 = $conn->prepare("
                 UPDATE pengajuan_peminjaman
                 SET status = 'disetujui',
-                    diverifikasi_oleh = ?,
                     disetujui_oleh = ?,
                     diperbarui_pada = NOW()
                 WHERE id = ?
             ");
-            $stmt2->bind_param('iii', $_SESSION['user_id'], $_SESSION['user_id'], $id);
+            $stmt2->bind_param('ii', $_SESSION['user_id'], $id);
             $stmt2->execute();
 
             foreach ($detail_list as $d) {
@@ -96,13 +95,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $aksi === 'serahkan') {
             $stmt3 = $conn->prepare("
                 UPDATE pengajuan_peminjaman
                 SET status = 'ditolak',
-                    diverifikasi_oleh = ?,
                     disetujui_oleh = ?,
                     catatan_tolak = ?,
                     diperbarui_pada = NOW()
                 WHERE id = ?
             ");
-            $stmt3->bind_param('iisi', $_SESSION['user_id'], $_SESSION['user_id'], $catatan, $id);
+            $stmt3->bind_param('isi', $_SESSION['user_id'], $catatan, $id);
             if ($stmt3->execute()) {
                 flash('success', "Pengajuan #$id ditolak oleh Staff TU.");
                 redirect('index.php');
