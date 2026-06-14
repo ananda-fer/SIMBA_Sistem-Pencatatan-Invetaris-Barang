@@ -31,15 +31,15 @@
     $basePath    = '../../';
 
     $kondisi_badge = [
-        'baik' => 'bg-success',
-        'rusak_ringan' => 'bg-warning text-dark',
-        'rusak_berat' => 'bg-danger'
+        'baik' => 'badge-selesai',
+        'rusak_ringan' => 'badge-menunggu',
+        'rusak_berat' => 'badge-ditolak'
     ];
 
     $status_badge = [
-        'tersedia' => 'bg-success',
-        'dipinjam' => 'bg-primary',
-        'dalam_perbaikan' => 'bg-danger'
+        'tersedia' => 'badge-disetujui',
+        'dipinjam' => 'badge-diverifikasi',
+        'dalam_perbaikan' => 'badge-ditolak'
     ];
 
     $extraStyles = '
@@ -126,16 +126,16 @@
                     <tr>
                         <th>Kondisi</th>
                         <td>: 
-                            <span class="badge <?php echo $kondisi_badge[$barang['kondisi']] ?? 'bg-secondary'; ?>">
-                                <?php echo htmlspecialchars(str_replace('_', ' ', $barang['kondisi'])); ?>
+                            <span class="badge <?php echo $kondisi_badge[$barang['kondisi']] ?? 'badge-aktif'; ?>">
+                                <?php echo htmlspecialchars(ucwords(str_replace('_', ' ', $barang['kondisi']))); ?>
                             </span>
                         </td>
                     </tr>
                     <tr>
                         <th>Status</th>
                         <td>: 
-                            <span class="badge <?php echo $status_badge[$barang['status']] ?? 'bg-secondary'; ?>">
-                                <?php echo htmlspecialchars(str_replace('_', ' ', $barang['status'])); ?>
+                            <span class="badge <?php echo $status_badge[$barang['status']] ?? 'badge-aktif'; ?>">
+                                <?php echo htmlspecialchars(ucwords(str_replace('_', ' ', $barang['status']))); ?>
                             </span>
                         </td>
                     </tr>
