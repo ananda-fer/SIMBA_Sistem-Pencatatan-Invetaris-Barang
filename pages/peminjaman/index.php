@@ -256,8 +256,8 @@ $flash_error   = get_flash('error');
                                     <a href="approval.php?id=<?= $row['id'] ?>" class="btn-detail">Approval</a>
 
                                     <?php elseif ($peran === 'staff_tu' && $row['status'] === 'disetujui'): ?>
-                                    <a href="approval.php?id=<?= $row['id'] ?>&aksi=serahkan" class="btn btn-approve btn-sm"
-                                       onclick="return confirm('Serahkan barang dan ubah status peminjaman menjadi aktif?')">Serahkan</a>
+                                    <button type="button" class="btn btn-approve btn-sm"
+                                            onclick="konfirmasiSerahkan(<?= $row['id'] ?>)">Serahkan</button>
 
                                     <?php elseif ($peran === 'peminjam' && $row['status'] === 'menunggu'): ?>
                                     <button type="button" class="btn btn-danger btn-sm"

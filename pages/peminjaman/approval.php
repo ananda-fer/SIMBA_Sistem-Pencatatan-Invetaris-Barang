@@ -267,10 +267,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $aksi === 'serahkan') {
                 <p style="font-size:12.5px;color:#065f46;margin-bottom:14px;line-height:1.5">
                     Pengajuan sudah disetujui. Setelah barang diserahkan, status peminjaman akan berubah menjadi aktif.
                 </p>
-                <form method="POST" onsubmit="return confirm('Serahkan barang dan ubah status peminjaman menjadi aktif?')">
-                    <input type="hidden" name="aksi" value="serahkan">
-                    <button type="submit" class="btn btn-approve btn-full">Serahkan Barang</button>
-                </form>
+                <button type="button" class="btn btn-approve btn-full"
+                        onclick="konfirmasiSerahkan(<?= $id ?>)">Serahkan Barang</button>
             </div>
         </div>
         <?php else: ?>
@@ -308,6 +306,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $aksi === 'serahkan') {
         <?php endif; ?>
 
     </main>
+</div>
+
+<!-- Modal Konfirmasi -->
+<div class="modal-overlay" id="confirm-modal">
+    <div class="modal-box">
+        <div class="modal-icon modal-icon-success">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+        </div>
+        <div class="modal-title" id="modal-title">Serahkan Barang?</div>
+        <div class="modal-desc" id="modal-desc">Status peminjaman akan berubah menjadi aktif setelah barang diterima peminjam.</div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-outline" onclick="closeModal()">Tidak</button>
+            <button type="button" class="btn btn-approve" id="modal-confirm-btn">Ya, Serahkan</button>
+        </div>
+    </div>
 </div>
 
 <div id="toast-container" class="toast-container"></div>

@@ -921,6 +921,7 @@ textarea.form-input { resize: vertical; min-height: 72px; }
     margin: 0 auto 14px;
 }
 .modal-icon-danger { background: #fee2e2; color: #991b1b; }
+.modal-icon-success { background: #d1fae5; color: #065f46; }
 .modal-icon-warning { background: #fef3c7; color: #92400e; }
 .modal-title { font-size: 16px; font-weight: 700; color: var(--text-main); text-align: center; margin-bottom: 6px; }
 .modal-desc { font-size: 12.5px; color: var(--text-sub); text-align: center; margin-bottom: 20px; line-height: 1.6; }

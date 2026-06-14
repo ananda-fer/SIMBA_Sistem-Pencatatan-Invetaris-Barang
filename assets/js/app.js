@@ -34,12 +34,16 @@ function showToast(message, type = 'success', duration = 3500) {
 /* ----------------------
    MODAL KONFIRMASI HAPUS/BATAL
    ---------------------- */
-function showConfirmModal({ title, desc, btnLabel = 'Ya, Lanjutkan', btnClass = 'btn-danger', onConfirm }) {
+function showConfirmModal({ title, desc, btnLabel = 'Ya, Lanjutkan', btnClass = 'btn-danger', iconClass = 'modal-icon-danger', onConfirm }) {
     const modal = document.getElementById('confirm-modal');
     if (!modal) return;
 
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-desc').textContent  = desc;
+    const modalIcon = modal.querySelector('.modal-icon');
+    if (modalIcon) {
+        modalIcon.className = `modal-icon ${iconClass}`;
+    }
 
     const confirmBtn = document.getElementById('modal-confirm-btn');
     confirmBtn.textContent = btnLabel;
@@ -89,8 +93,9 @@ function konfirmasiSerahkan(id) {
         desc: 'Status peminjaman akan berubah menjadi aktif setelah barang diterima peminjam.',
         btnLabel: 'Ya, Serahkan',
         btnClass: 'btn-approve',
+        iconClass: 'modal-icon-success',
         onConfirm: () => {
-            window.location.href = `serahkan.php?id=${id}`;
+            window.location.href = `approval.php?id=${id}&aksi=serahkan`;
         }
     });
 }
