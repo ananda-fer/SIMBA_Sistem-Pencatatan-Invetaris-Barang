@@ -80,8 +80,8 @@
         </div>
 
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-warning fw-bold"><i class="bi bi-floppy-fill"></i>  Simpan</button>
-            <a href="index.php" class="btn btn-dark"><i class="bi bi-house-door-fill"></i>  Kembali</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-floppy-fill"></i>  Simpan</button>
+            <a href="index.php" class="btn btn-outline"><i class="bi bi-house-door-fill"></i>  Kembali</a>
         </div>
 
     </form>

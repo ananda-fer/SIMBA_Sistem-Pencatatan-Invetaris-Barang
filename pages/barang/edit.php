@@ -136,8 +136,8 @@
         <hr class="my-4">
 
         <div class="d-flex justify-content-end gap-2">
-            <a href="index.php" class="btn btn-dark fw-bold px-4">Batal</a>
-            <button type="submit" class="btn btn-warning fw-bold px-4">Simpan</button>
+            <a href="index.php" class="btn btn-outline px-4">Batal</a>
+            <button type="submit" class="btn btn-primary px-4">Simpan</button>
         </div>
     </form>
 </div>

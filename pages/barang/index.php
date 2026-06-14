@@ -51,15 +51,15 @@
     }
 
     $kondisi_badge = [
-        'baik' => 'bg-success',
-        'rusak_ringan' => 'bg-warning text-dark',
-        'rusak_berat' => 'bg-danger'
+        'baik' => 'badge-selesai',
+        'rusak_ringan' => 'badge-menunggu',
+        'rusak_berat' => 'badge-ditolak'
     ];
 
     $status_badge = [
-        'tersedia' => 'bg-success',
-        'dipinjam' => 'bg-primary',
-        'dalam_perbaikan' => 'bg-danger'
+        'tersedia' => 'badge-disetujui',
+        'dipinjam' => 'badge-diverifikasi',
+        'dalam_perbaikan' => 'badge-ditolak'
     ];
 
     $pageTitle   = 'Katalog Barang';
@@ -69,14 +69,14 @@
     $extraStyles = '
     <style>
         .filter-box {
-            background: #91969e; border-radius: 14px; padding: 1.5rem;
+            background: #ffffff; border-radius: 14px; padding: 1.5rem; border: 1px solid #edf2f4; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-        .filter-box label { color: #fff; font-weight: 500; }
+        .filter-box label { color: #1a1a1a; font-weight: 500; }
         .filter-box .form-control,
         .filter-box .form-select {
-            background: #1a1e24; color: #fff; border: 1px solid #2d3748;
+            background: #ffffff; color: #1a1a1a; border: 1px solid #d1d5db;
         }
-        .filter-box .form-control::placeholder { color: #999; }
+        .filter-box .form-control::placeholder { color: #9ca3af; }
     </style>
     ';
 
@@ -92,7 +92,7 @@
         </div>
         <?php if ($_SESSION['peran'] === 'admin'): ?>
         <div>
-            <a href="tambah.php" class="btn btn-warning fw-bold"><i class="bi bi-bag-plus-fill"></i> Tambah Barang</a>
+            <a href="tambah.php" class="btn btn-primary"><i class="bi bi-bag-plus-fill"></i> Tambah Barang</a>
         </div>
         <?php endif; ?>
     </div>
@@ -123,7 +123,7 @@
                 </select>
             </div>
             <div class="col-md-2 d-flex align-items-end gap-2">
-                <button type="submit" class="btn btn-warning fw-bold"><i class="bi bi-search"></i>  Cari</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i>  Cari</button>
                 <a href="index.php" class="btn btn-dark"><i class="bi bi-x-circle"></i>  Reset</a>
             </div>
         </form>
@@ -159,18 +159,20 @@
                 <td><?php echo $row['nama']; ?></td>
                 <td><?php echo $row['nama_kategori']; ?></td>
                 <td><?php echo $row['stok_tersedia']; ?>/<?php echo $row['stok_total']; ?></td>
-                <td><span class="badge <?php echo $kondisi_badge[$row['kondisi']] ?? 'bg-secondary'; ?>"><?php echo str_replace('_', ' ', $row['kondisi']); ?></span></td>
-                <td><span class="badge <?php echo $status_badge[$row['status']] ?? 'bg-secondary'; ?>"><?php echo str_replace('_', ' ', $row['status']); ?></span></td>
+                <td><span class="badge <?php echo $kondisi_badge[$row['kondisi']] ?? 'badge-aktif'; ?>"><?php echo ucwords(str_replace('_', ' ', $row['kondisi'])); ?></span></td>
+                <td><span class="badge <?php echo $status_badge[$row['status']] ?? 'badge-aktif'; ?>"><?php echo ucwords(str_replace('_', ' ', $row['status'])); ?></span></td>
                 <td>
-                    <a href="detail.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info">Detail</a>
-                    <?php if ($_SESSION['peran'] === 'admin' || $_SESSION['peran'] === 'staff_tu'): ?>
-                        <?php // TOMBOL EDIT ?>
-                        <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">Edit</a>
-                    <?php endif; ?>
-                    <?php if ($_SESSION['peran'] === 'admin'): ?>
-                        <?php // TOMBOL HAPUS KHUSUS ADMIN ?>
-                        <a href="hapus.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">Hapus</a>
-                    <?php endif; ?>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        <a href="detail.php?id=<?php echo $row['id']; ?>" style="font-size:.85rem;color:#4361ee;text-decoration:none;font-weight:600;display:flex;align-items:center;padding:0 4px;">Detail</a>
+                        <?php if ($_SESSION['peran'] === 'admin' || $_SESSION['peran'] === 'staff_tu'): ?>
+                            <?php // TOMBOL EDIT ?>
+                            <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-outline btn-sm">Edit</a>
+                        <?php endif; ?>
+                        <?php if ($_SESSION['peran'] === 'admin'): ?>
+                            <?php // TOMBOL HAPUS KHUSUS ADMIN ?>
+                            <a href="hapus.php?id=<?php echo $row['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus?')">Hapus</a>
+                        <?php endif; ?>
+                    </div>
                 </td>
             </tr>
             <?php endforeach; ?>
