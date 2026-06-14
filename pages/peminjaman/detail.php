@@ -34,10 +34,12 @@ if ($peran === 'peminjam' && $peminjaman['id_peminjam'] != $_SESSION['user_id'])
 
 // Ambil detail barang
 $detail_stmt = $conn->prepare("
-    SELECT dp.*, b.nama AS nama_barang, b.kode_barang, (b.stok_total <= 3) AS wajib_surat, k.nama AS kategori
+    SELECT dp.*, b.nama AS nama_barang, b.kode_barang, (b.stok_total <= 3) AS wajib_surat, k.nama AS kategori,
+           pg.kondisi_kembali
     FROM detail_peminjaman dp
     JOIN barang b ON b.id = dp.id_barang
     JOIN kategori k ON k.id = b.kategori_id
+    LEFT JOIN pengembalian pg ON pg.id_peminjaman = dp.id_peminjaman
     WHERE dp.id_peminjaman = ?
 ");
 $detail_stmt->bind_param('i', $id);
@@ -234,7 +236,7 @@ $flash_error   = get_flash('error');
                         <td><?= badge_surat((bool)$d['wajib_surat']) ?></td>
                         <td><?= badge_status($d['kondisi_saat_pinjam']) ?></td>
                         <?php if (in_array($peminjaman['status'], ['selesai'])): ?>
-                        <td><?= $d['kondisi_saat_kembali'] ? badge_status($d['kondisi_saat_kembali']) : '<span class="text-muted">-</span>' ?></td>
+                        <td><?= !empty($d['kondisi_kembali']) ? badge_status($d['kondisi_kembali']) : '<span class="text-muted">-</span>' ?></td>
                         <?php endif; ?>
                     </tr>
                     <?php endforeach; ?>

@@ -70,6 +70,9 @@ function badge_status(string $status): string {
         'aktif'        => ['label' => 'AKTIF',        'class' => 'badge-aktif'],
         'selesai'      => ['label' => 'SELESAI',      'class' => 'badge-selesai'],
         'dibatalkan'   => ['label' => 'DIBATALKAN',   'class' => 'badge-dibatalkan'],
+        'baik'         => ['label' => 'BAIK',         'class' => 'badge-aktif'],
+        'rusak_ringan' => ['label' => 'RUSAK RINGAN', 'class' => 'badge-menunggu'],
+        'rusak_berat'  => ['label' => 'RUSAK BERAT',  'class' => 'badge-ditolak'],
     ];
     $b = $map[$status] ?? ['label' => strtoupper($status), 'class' => 'badge-aktif'];
     return '<span class="badge ' . $b['class'] . '">' . $b['label'] . '</span>';
